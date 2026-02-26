@@ -1,0 +1,56 @@
+/* Section */
+.category-section {
+  padding: 60px 8%;
+  background: linear-gradient(to right, #f9fafc, #eef2f7);
+  margin: auto;
+}
+
+/* Title */
+.category-title {
+  text-align: center;
+  font-size: 2.5rem;
+  margin-bottom: 40px;
+  font-weight: 700;
+  color: #222;
+}
+
+/* Grid Layout */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 25px;
+}
+
+/* Card Design */
+
+.category-card {
+  display: block;
+  padding: 40px 20px;
+  border-radius: 18px;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+/* Card Text */
+.category-card h2 {
+  font-size: 1.4rem;
+  color: #333;
+  font-weight: 600;
+}
+
+/* Hover Effect */
+.category-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  background: linear-gradient(135deg, #4f46e5, #9333ea);
+  color: white;
+  box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4);
+}
+
+.category-card:hover h2 {
+  color: white;
+}

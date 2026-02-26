@@ -1,0 +1,26 @@
+.category-page {
+    padding: 60px 8%;
+  }
+  
+  .category-page h1 {
+    margin-bottom: 30px;
+  }
+  
+  .category-news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  
+  .category-news-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  
+  .category-news-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+  

@@ -1,0 +1,104 @@
+/* ===== Layout ===== */
+
+.hero-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 55px;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding:20px;
+}
+
+/* ===== Feature News ===== */
+
+.hero-feature {
+  position: relative;
+  height: 420px;
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.hero-feature img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.hero-feature:hover img {
+  transform: scale(1.08);
+}
+
+/* Overlay */
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 25px;
+
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.75), transparent);
+}
+
+.hero-overlay h2 {
+  color: white;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* ===== Weather Card ===== */
+
+.weather-card {
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  border-radius: 18px;
+  padding: 25px;
+  color: white;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.weather-card:hover {
+  transform: translateY(-5px);
+}
+
+.weather-card h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.weather-card img {
+  width: 80px;
+}
+
+.weather-card h1 {
+  font-size: 42px;
+  margin: 10px 0;
+}
+
+.weather-card p {
+  text-transform: capitalize;
+}
+
+/* ===== Loading/Error ===== */
+
+.hero-loading,
+.hero-error {
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* ===== Responsive ===== */
+
+@media (max-width: 900px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-feature {
+    height: 300px;
+  }
+}
