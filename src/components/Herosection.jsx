@@ -5,7 +5,7 @@ function Herosection() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch("https://timika-unconjugated-consumedly.ngrok-free.dev/news/all")
+    fetch("https://news-project-06582-2.onrender.com/news/all")
       .then((res) => {
         if (!res.ok) throw new Error("Server error");
         return res.json();
