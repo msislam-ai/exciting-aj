@@ -1,6 +1,6 @@
 // src/api/newsApi.js
 
-const BASE_URL = "https://news-project-06582-2.onrender.com/news/all";
+const BASE_URL = "https://news-project-06582-2.onrender.com";
 
 /* =========================
    Fetch All News
