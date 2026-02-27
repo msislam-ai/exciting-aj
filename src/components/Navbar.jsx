@@ -26,7 +26,6 @@ const Navbar = () => {
     "আরও",
   ];
 
-  // Responsive listener
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -37,7 +36,7 @@ const Navbar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Prevent scroll when sidebar open
+  // lock scroll when sidebar open
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? "hidden" : "auto";
   }, [sidebarOpen]);
@@ -47,24 +46,27 @@ const Navbar = () => {
       {/* ===== TOP BAR ===== */}
       <div style={styles.topPart}>
         
-        {/* LEFT MENU BUTTON */}
+        {/* LEFT : DATE OR MENU */}
         <div style={styles.left}>
-          {isMobile && (
+          {isMobile ? (
             <i
               className="fa-solid fa-bars"
               style={styles.hamburger}
               onClick={toggleSidebar}
             ></i>
+          ) : (
+            <p style={styles.date}>{banglaDate}</p>
           )}
         </div>
 
-        {/* CENTER LOGO */}
+        {/* CENTER : CLICKABLE LOGO */}
         <div style={styles.center}>
-          <h2 style={styles.logo}>বাংলা বার্তা</h2>
-          {!isMobile && <p style={styles.date}>{banglaDate}</p>}
+          <Link to="/" style={styles.logoLink}>
+            <h2 style={styles.logo}>বাংলা বার্তা</h2>
+          </Link>
         </div>
 
-        {/* RIGHT SOCIAL (DESKTOP ONLY) */}
+        {/* RIGHT : SOCIAL ICONS (DESKTOP) */}
         <div style={styles.right}>
           {!isMobile && (
             <div style={styles.socialIcons}>
@@ -98,7 +100,7 @@ const Navbar = () => {
         <div style={styles.overlay} onClick={closeSidebar}></div>
       )}
 
-      {/* ===== SIDEBAR ===== */}
+      {/* ===== MOBILE SIDEBAR ===== */}
       <div
         style={{
           ...styles.sidebar,
@@ -129,7 +131,7 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* MOBILE SOCIAL */}
+        {/* MOBILE SOCIAL ICONS */}
         <div style={styles.sidebarSocial}>
           <a href="#"><i className="fa-brands fa-youtube"></i></a>
           <a href="#"><i className="fa-brands fa-linkedin"></i></a>
@@ -142,17 +144,17 @@ const Navbar = () => {
 };
 
 const styles = {
-  /* ✅ STICKY NAVBAR */
+  /* STICKY NAVBAR */
   navbar: {
     position: "sticky",
     top: 0,
-    width: "100%",
     backgroundColor: "white",
+    width: "100%",
     boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
     zIndex: 999,
   },
 
-  /* TOP BAR */
+  /* GRID CENTERING MAGIC */
   topPart: {
     display: "grid",
     gridTemplateColumns: "1fr auto 1fr",
@@ -174,16 +176,21 @@ const styles = {
     justifyContent: "flex-end",
   },
 
+  logoLink: {
+    textDecoration: "none",
+    color: "black",
+  },
+
   logo: {
     fontSize: "2rem",
     fontWeight: "bold",
     margin: 0,
+    cursor: "pointer",
   },
 
   date: {
-    fontSize: "0.85rem",
+    fontSize: "0.9rem",
     color: "#555",
-    marginTop: "4px",
   },
 
   hamburger: {
