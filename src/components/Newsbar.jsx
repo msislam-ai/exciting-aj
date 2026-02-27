@@ -8,7 +8,7 @@ const Newsbar = () => {
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    fetch("https://news-project-06582.onrender.com/news/all")
+    fetch("https://news-project-06582-2.onrender.com/news/all")
       .then((res) => {
         if (!res.ok) throw new Error("Server error");
         return res.json();
