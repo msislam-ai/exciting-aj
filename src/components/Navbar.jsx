@@ -37,37 +37,44 @@ const Navbar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Prevent body scroll when sidebar open
+  // Prevent scroll when sidebar open
   useEffect(() => {
     document.body.style.overflow = sidebarOpen ? "hidden" : "auto";
   }, [sidebarOpen]);
 
   return (
     <nav style={styles.navbar}>
-      {/* ===== TOP PART ===== */}
+      {/* ===== TOP BAR ===== */}
       <div style={styles.topPart}>
-        {/* MENU BUTTON */}
-        {isMobile && (
-          <i
-            className="fa-solid fa-bars"
-            style={styles.hamburger}
-            onClick={toggleSidebar}
-          ></i>
-        )}
+        
+        {/* LEFT MENU BUTTON */}
+        <div style={styles.left}>
+          {isMobile && (
+            <i
+              className="fa-solid fa-bars"
+              style={styles.hamburger}
+              onClick={toggleSidebar}
+            ></i>
+          )}
+        </div>
 
-        <p style={styles.date}>{banglaDate}</p>
+        {/* CENTER LOGO */}
+        <div style={styles.center}>
+          <h2 style={styles.logo}>বাংলা বার্তা</h2>
+          {!isMobile && <p style={styles.date}>{banglaDate}</p>}
+        </div>
 
-        <h2 style={styles.logo}>বাংলা বার্তা</h2>
-
-        {/* Desktop Social Icons */}
-        {!isMobile && (
-          <div style={styles.socialIcons}>
-            <a href="#"><i className="fa-brands fa-youtube"></i></a>
-            <a href="#"><i className="fa-brands fa-linkedin"></i></a>
-            <a href="#"><i className="fa-brands fa-instagram"></i></a>
-            <a href="#"><i className="fa-brands fa-facebook"></i></a>
-          </div>
-        )}
+        {/* RIGHT SOCIAL (DESKTOP ONLY) */}
+        <div style={styles.right}>
+          {!isMobile && (
+            <div style={styles.socialIcons}>
+              <a href="#"><i className="fa-brands fa-youtube"></i></a>
+              <a href="#"><i className="fa-brands fa-linkedin"></i></a>
+              <a href="#"><i className="fa-brands fa-instagram"></i></a>
+              <a href="#"><i className="fa-brands fa-facebook"></i></a>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* ===== DESKTOP NAV ===== */}
@@ -100,7 +107,6 @@ const Navbar = () => {
             : "translateX(100%)",
         }}
       >
-        {/* CLOSE BUTTON */}
         <div style={styles.closeWrapper}>
           <i
             className="fa-solid fa-xmark"
@@ -109,7 +115,6 @@ const Navbar = () => {
           ></i>
         </div>
 
-        {/* MENU ITEMS */}
         <ul style={styles.sidebarLinks}>
           {categories.map((cat) => (
             <li key={cat}>
@@ -124,7 +129,7 @@ const Navbar = () => {
           ))}
         </ul>
 
-        {/* SOCIAL ICONS MOBILE */}
+        {/* MOBILE SOCIAL */}
         <div style={styles.sidebarSocial}>
           <a href="#"><i className="fa-brands fa-youtube"></i></a>
           <a href="#"><i className="fa-brands fa-linkedin"></i></a>
@@ -137,36 +142,53 @@ const Navbar = () => {
 };
 
 const styles = {
+  /* ✅ STICKY NAVBAR */
   navbar: {
+    position: "sticky",
+    top: 0,
     width: "100%",
     backgroundColor: "white",
     boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
-    position: "relative",
-    zIndex: 50,
+    zIndex: 999,
   },
 
+  /* TOP BAR */
   topPart: {
+    display: "grid",
+    gridTemplateColumns: "1fr auto 1fr",
+    alignItems: "center",
+    padding: "15px 20px",
+  },
+
+  left: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
-    padding: "18px 20px",
   },
 
-  hamburger: {
-    fontSize: "1.6rem",
-    cursor: "pointer",
+  center: {
+    textAlign: "center",
+  },
+
+  right: {
+    display: "flex",
+    justifyContent: "flex-end",
   },
 
   logo: {
     fontSize: "2rem",
     fontWeight: "bold",
-    textAlign: "center",
-    flexGrow: 1,
+    margin: 0,
   },
 
   date: {
-    fontSize: "0.9rem",
+    fontSize: "0.85rem",
     color: "#555",
+    marginTop: "4px",
+  },
+
+  hamburger: {
+    fontSize: "1.6rem",
+    cursor: "pointer",
   },
 
   socialIcons: {
@@ -190,7 +212,6 @@ const styles = {
     fontSize: "1.1rem",
   },
 
-  /* Overlay */
   overlay: {
     position: "fixed",
     top: 0,
@@ -198,10 +219,9 @@ const styles = {
     width: "100%",
     height: "100%",
     backgroundColor: "rgba(0,0,0,0.4)",
-    zIndex: 40,
+    zIndex: 998,
   },
 
-  /* Sidebar */
   sidebar: {
     position: "fixed",
     top: 0,
@@ -211,7 +231,7 @@ const styles = {
     backgroundColor: "white",
     boxShadow: "-2px 0 10px rgba(0,0,0,0.25)",
     transition: "transform 0.35s ease",
-    zIndex: 50,
+    zIndex: 999,
     display: "flex",
     flexDirection: "column",
   },
