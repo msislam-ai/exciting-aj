@@ -189,7 +189,7 @@ const styles = {
   },
 
   date: {
-    fontSize: "1rem",
+    fontSize: "0.9rem",
     color: "#555",
   },
 
