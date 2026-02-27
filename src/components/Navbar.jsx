@@ -26,6 +26,7 @@ const Navbar = () => {
     "আরও",
   ];
 
+  // Responsive listener
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -36,12 +37,16 @@ const Navbar = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Prevent body scroll when sidebar open
+  useEffect(() => {
+    document.body.style.overflow = sidebarOpen ? "hidden" : "auto";
+  }, [sidebarOpen]);
+
   return (
     <nav style={styles.navbar}>
       {/* ===== TOP PART ===== */}
       <div style={styles.topPart}>
-        
-        {/* ✅ LEFT MENU BUTTON */}
+        {/* MENU BUTTON */}
         {isMobile && (
           <i
             className="fa-solid fa-bars"
@@ -54,12 +59,15 @@ const Navbar = () => {
 
         <h2 style={styles.logo}>বাংলা বার্তা</h2>
 
-        <div style={styles.socialIcons}>
-          <a href="#"><i className="fa-brands fa-youtube"></i></a>
-          <a href="#"><i className="fa-brands fa-linkedin"></i></a>
-          <a href="#"><i className="fa-brands fa-instagram"></i></a>
-          <a href="#"><i className="fa-brands fa-facebook"></i></a>
-        </div>
+        {/* Desktop Social Icons */}
+        {!isMobile && (
+          <div style={styles.socialIcons}>
+            <a href="#"><i className="fa-brands fa-youtube"></i></a>
+            <a href="#"><i className="fa-brands fa-linkedin"></i></a>
+            <a href="#"><i className="fa-brands fa-instagram"></i></a>
+            <a href="#"><i className="fa-brands fa-facebook"></i></a>
+          </div>
+        )}
       </div>
 
       {/* ===== DESKTOP NAV ===== */}
@@ -67,7 +75,10 @@ const Navbar = () => {
         <ul style={styles.navLinks}>
           {categories.map((cat) => (
             <li key={cat}>
-              <Link style={styles.link} to={`/category/${encodeURIComponent(cat)}`}>
+              <Link
+                style={styles.link}
+                to={`/category/${encodeURIComponent(cat)}`}
+              >
                 {cat}
               </Link>
             </li>
@@ -75,34 +86,52 @@ const Navbar = () => {
         </ul>
       )}
 
-      {/* ===== MOBILE SIDEBAR ===== */}
+      {/* ===== OVERLAY ===== */}
       {sidebarOpen && (
-        <div style={styles.sidebar}>
-          
-          {/* ✅ CLOSE BUTTON */}
-          <div style={styles.closeWrapper}>
-            <i
-              className="fa-solid fa-xmark"
-              style={styles.closeBtn}
-              onClick={closeSidebar}
-            ></i>
-          </div>
-
-          <ul style={styles.sidebarLinks}>
-            {categories.map((cat) => (
-              <li key={cat}>
-                <Link
-                  style={styles.link}
-                  to={`/category/${encodeURIComponent(cat)}`}
-                  onClick={closeSidebar}
-                >
-                  {cat}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <div style={styles.overlay} onClick={closeSidebar}></div>
       )}
+
+      {/* ===== SIDEBAR ===== */}
+      <div
+        style={{
+          ...styles.sidebar,
+          transform: sidebarOpen
+            ? "translateX(0)"
+            : "translateX(100%)",
+        }}
+      >
+        {/* CLOSE BUTTON */}
+        <div style={styles.closeWrapper}>
+          <i
+            className="fa-solid fa-xmark"
+            style={styles.closeBtn}
+            onClick={closeSidebar}
+          ></i>
+        </div>
+
+        {/* MENU ITEMS */}
+        <ul style={styles.sidebarLinks}>
+          {categories.map((cat) => (
+            <li key={cat}>
+              <Link
+                style={styles.link}
+                to={`/category/${encodeURIComponent(cat)}`}
+                onClick={closeSidebar}
+              >
+                {cat}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        {/* SOCIAL ICONS MOBILE */}
+        <div style={styles.sidebarSocial}>
+          <a href="#"><i className="fa-brands fa-youtube"></i></a>
+          <a href="#"><i className="fa-brands fa-linkedin"></i></a>
+          <a href="#"><i className="fa-brands fa-instagram"></i></a>
+          <a href="#"><i className="fa-brands fa-facebook"></i></a>
+        </div>
+      </div>
     </nav>
   );
 };
@@ -111,16 +140,16 @@ const styles = {
   navbar: {
     width: "100%",
     backgroundColor: "white",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.15)",
     position: "relative",
-    zIndex: 10,
+    zIndex: 50,
   },
 
   topPart: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "20px 20px",
+    padding: "18px 20px",
   },
 
   hamburger: {
@@ -142,7 +171,7 @@ const styles = {
 
   socialIcons: {
     display: "flex",
-    gap: "10px",
+    gap: "12px",
     fontSize: "1.2rem",
   },
 
@@ -154,15 +183,37 @@ const styles = {
     padding: "10px 0",
   },
 
+  link: {
+    textDecoration: "none",
+    color: "black",
+    fontWeight: "500",
+    fontSize: "1.1rem",
+  },
+
+  /* Overlay */
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.4)",
+    zIndex: 40,
+  },
+
+  /* Sidebar */
   sidebar: {
     position: "fixed",
     top: 0,
     right: 0,
     height: "100vh",
-    width: "260px",
+    width: "270px",
     backgroundColor: "white",
-    boxShadow: "-2px 0 8px rgba(0,0,0,0.2)",
-    zIndex: 20,
+    boxShadow: "-2px 0 10px rgba(0,0,0,0.25)",
+    transition: "transform 0.35s ease",
+    zIndex: 50,
+    display: "flex",
+    flexDirection: "column",
   },
 
   closeWrapper: {
@@ -172,7 +223,7 @@ const styles = {
   },
 
   closeBtn: {
-    fontSize: "1.5rem",
+    fontSize: "1.6rem",
     cursor: "pointer",
   },
 
@@ -180,15 +231,18 @@ const styles = {
     listStyle: "none",
     display: "flex",
     flexDirection: "column",
-    gap: "20px",
+    gap: "22px",
     paddingLeft: "25px",
     fontSize: "1.2rem",
   },
 
-  link: {
-    textDecoration: "none",
-    color: "black",
-    fontWeight: "500",
+  sidebarSocial: {
+    marginTop: "auto",
+    marginBottom: "40px",
+    display: "flex",
+    justifyContent: "center",
+    gap: "22px",
+    fontSize: "1.5rem",
   },
 };
 
