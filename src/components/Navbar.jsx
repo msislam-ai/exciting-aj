@@ -15,8 +15,8 @@ const Navbar = () => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+  const closeSidebar = () => setSidebarOpen(false);
 
-  // ✅ SAME categories as CategorySection
   const categories = [
     "সর্বশেষ",
     "জাতীয়",
@@ -26,7 +26,6 @@ const Navbar = () => {
     "আরও",
   ];
 
-  // Responsive listener
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -41,25 +40,25 @@ const Navbar = () => {
     <nav style={styles.navbar}>
       {/* ===== TOP PART ===== */}
       <div style={styles.topPart}>
+        
+        {/* ✅ LEFT MENU BUTTON */}
+        {isMobile && (
+          <i
+            className="fa-solid fa-bars"
+            style={styles.hamburger}
+            onClick={toggleSidebar}
+          ></i>
+        )}
+
         <p style={styles.date}>{banglaDate}</p>
 
         <h2 style={styles.logo}>বাংলা বার্তা</h2>
 
-        <div style={styles.right}>
-          <div style={styles.socialIcons}>
-            <a href="#"><i className="fa-brands fa-youtube"></i></a>
-            <a href="#"><i className="fa-brands fa-linkedin"></i></a>
-            <a href="#"><i className="fa-brands fa-instagram"></i></a>
-            <a href="#"><i className="fa-brands fa-facebook"></i></a>
-          </div>
-
-          {isMobile && (
-            <i
-              className="fa-solid fa-bars"
-              style={styles.hamburger}
-              onClick={toggleSidebar}
-            ></i>
-          )}
+        <div style={styles.socialIcons}>
+          <a href="#"><i className="fa-brands fa-youtube"></i></a>
+          <a href="#"><i className="fa-brands fa-linkedin"></i></a>
+          <a href="#"><i className="fa-brands fa-instagram"></i></a>
+          <a href="#"><i className="fa-brands fa-facebook"></i></a>
         </div>
       </div>
 
@@ -68,10 +67,7 @@ const Navbar = () => {
         <ul style={styles.navLinks}>
           {categories.map((cat) => (
             <li key={cat}>
-              <Link
-                style={styles.link}
-                to={`/category/${encodeURIComponent(cat)}`}
-              >
+              <Link style={styles.link} to={`/category/${encodeURIComponent(cat)}`}>
                 {cat}
               </Link>
             </li>
@@ -82,13 +78,23 @@ const Navbar = () => {
       {/* ===== MOBILE SIDEBAR ===== */}
       {sidebarOpen && (
         <div style={styles.sidebar}>
+          
+          {/* ✅ CLOSE BUTTON */}
+          <div style={styles.closeWrapper}>
+            <i
+              className="fa-solid fa-xmark"
+              style={styles.closeBtn}
+              onClick={closeSidebar}
+            ></i>
+          </div>
+
           <ul style={styles.sidebarLinks}>
             {categories.map((cat) => (
               <li key={cat}>
                 <Link
                   style={styles.link}
                   to={`/category/${encodeURIComponent(cat)}`}
-                  onClick={() => setSidebarOpen(false)}
+                  onClick={closeSidebar}
                 >
                   {cat}
                 </Link>
@@ -109,38 +115,37 @@ const styles = {
     position: "relative",
     zIndex: 10,
   },
+
   topPart: {
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
-    padding: "20px 30px",
-    minHeight: "100px",
-    flexWrap: "wrap",
+    justifyContent: "space-between",
+    padding: "20px 20px",
   },
+
+  hamburger: {
+    fontSize: "1.6rem",
+    cursor: "pointer",
+  },
+
   logo: {
     fontSize: "2rem",
     fontWeight: "bold",
     textAlign: "center",
     flexGrow: 1,
   },
+
   date: {
     fontSize: "0.9rem",
     color: "#555",
   },
-  right: {
-    display: "flex",
-    alignItems: "center",
-    gap: "15px",
-  },
+
   socialIcons: {
     display: "flex",
     gap: "10px",
     fontSize: "1.2rem",
   },
-  hamburger: {
-    fontSize: "1.5rem",
-    cursor: "pointer",
-  },
+
   navLinks: {
     display: "flex",
     justifyContent: "center",
@@ -148,25 +153,38 @@ const styles = {
     listStyle: "none",
     padding: "10px 0",
   },
+
   sidebar: {
     position: "fixed",
     top: 0,
     right: 0,
     height: "100vh",
-    width: "250px",
+    width: "260px",
     backgroundColor: "white",
     boxShadow: "-2px 0 8px rgba(0,0,0,0.2)",
-    paddingTop: "100px",
     zIndex: 20,
   },
+
+  closeWrapper: {
+    display: "flex",
+    justifyContent: "flex-end",
+    padding: "20px",
+  },
+
+  closeBtn: {
+    fontSize: "1.5rem",
+    cursor: "pointer",
+  },
+
   sidebarLinks: {
     listStyle: "none",
     display: "flex",
     flexDirection: "column",
     gap: "20px",
-    paddingLeft: "20px",
+    paddingLeft: "25px",
     fontSize: "1.2rem",
   },
+
   link: {
     textDecoration: "none",
     color: "black",
