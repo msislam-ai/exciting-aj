@@ -11,7 +11,7 @@ const Herosection = () => {
   useEffect(() => {
     const fetchNews = async () => {
       try {
-        const res = await fetch("https://news-project-06582.onrender.com/news/all");
+        const res = await fetch("https://news-project-06582-2.onrender.com/news/all");
 
         if (!res.ok) throw new Error();
 
