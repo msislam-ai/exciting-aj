@@ -55,7 +55,7 @@ const Newsbar = () => {
     loadNews();
 
     // ✅ Auto-refresh every 30s
-    const interval = setInterval(() => loadNews(), 30000);
+    const interval = setInterval(() => loadNews(), 7200000);
     return () => clearInterval(interval);
   }, []);
 
@@ -91,7 +91,7 @@ const Newsbar = () => {
 
       {/* See More Button */}
       <div className="see-more-container">
-        <button className="see-more-btn" onClick={() => navigate("/all-news")}>
+        <button className="see-more-btn" onClick={() => navigate("/AllNewsPage")}>
           See More News →
         </button>
       </div>
