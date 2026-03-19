@@ -1,9 +1,7 @@
+// src/components/CategoryPage.jsx
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import "./news.css";
-
-const pageSize = 6; // 1 featured + 5 small
 
 const CategoryPage = () => {
   const { categoryName } = useParams();
@@ -14,32 +12,24 @@ const CategoryPage = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get("page")) || 1;
+  const PAGE_SIZE = 20; // 20 news per page
 
   useEffect(() => {
     const loadNews = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-
-        // ✅ Fetch news for category
+        // Fetch category news with server-side pagination
         const res = await axios.get(
-          `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(categoryName)}`
+          `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(
+            categoryName
+          )}?page=${currentPage}&limit=${PAGE_SIZE}`
         );
 
-        const allNews = Array.isArray(res.data) ? res.data : [];
-
-        // Sort newest first
-        const sortedNews = allNews.sort(
-          (a, b) => new Date(b.pubDate) - new Date(a.pubDate)
-        );
-
-        // Slice for current page
-        const startIndex = (currentPage - 1) * pageSize;
-        const pagedNews = sortedNews.slice(startIndex, startIndex + pageSize);
-
-        setNews(pagedNews);
-        setTotalPages(Math.ceil(allNews.length / pageSize));
+        const data = res.data;
+        setNews(data.data || []);
+        setTotalPages(data.totalPages || 1);
       } catch (err) {
-        console.log(err);
+        console.error(err);
         setError(err.message || "Failed to fetch news");
       } finally {
         setLoading(false);
@@ -49,49 +39,54 @@ const CategoryPage = () => {
     loadNews();
   }, [categoryName, currentPage]);
 
-  const goToPage = (page) => {
-    setSearchParams({ page });
-  };
+  const goToPage = (page) => setSearchParams({ page });
 
-  if (loading) return <p className="status-text">Loading news...</p>;
-  if (error) return <p className="status-text error">{error}</p>;
-  if (news.length === 0) return <p className="status-text">কোনও খবর নেই</p>;
+  if (loading)
+    return (
+      <div style={styles.loadingWrapper}>
+        <div style={styles.spinner}></div>
+        <p>Loading news...</p>
+      </div>
+    );
 
-  const featured = news[0];
-  const smallNews = news.slice(1);
+  if (error)
+    return (
+      <div style={styles.errorWrapper}>
+        <p>{error}</p>
+        <Link to="/" style={styles.backBtn}>
+          ← Back to Home
+        </Link>
+      </div>
+    );
+
+  if (!news.length)
+    return <p style={{ padding: "50px 8%", textAlign: "center" }}>No news found!</p>;
 
   return (
-    <section className="category-page">
-      <div className="category-header">
-        <h2 className="section-title">{categoryName}</h2>
-        <Link to="/">
-          <button className="see-more">হোম →</button>
+    <section style={styles.container}>
+      <div style={styles.header}>
+        <h2>{categoryName}</h2>
+        <Link to="/" style={styles.backBtn}>
+          হোম →
         </Link>
       </div>
 
-      {/* Featured */}
-      {featured && (
-        <div className="featured-news">
-          <img src={featured.image || "/placeholder.jpg"} alt={featured.title} />
-          <div className="featured-content">
-            <span className="category">{featured.category}</span>
-            <Link to={`/article/${featured._id}`}>
-              <h3>{featured.title}</h3>
-              <p>{featured.shortDescription}</p>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* Small News */}
-      <div className="news-grid">
-        {smallNews.map((item) => (
-          <Link key={item._id} to={`/article/${item._id}`} className="news-card">
-            <img src={item.image || "/placeholder.jpg"} alt={item.title} />
-            <div className="news-content">
-              <span className="category">{item.category}</span>
-              <h4>{item.title}</h4>
-              <p>{item.shortDescription}</p>
+      <div style={styles.grid}>
+        {news.map((item) => (
+          <Link
+            key={item._id}
+            to={`/article/${item._id}`}
+            style={styles.card}
+          >
+            <img
+              src={item.image || "/placeholder.jpg"}
+              alt={item.title}
+              style={styles.image}
+            />
+            <div style={styles.cardContent}>
+              <span style={styles.category}>{item.category || "আরও"}</span>
+              <h4 style={styles.title}>{item.title}</h4>
+              <p style={styles.description}>{item.shortDescription}</p>
             </div>
           </Link>
         ))}
@@ -99,20 +94,122 @@ const CategoryPage = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="pagination">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i + 1}
-              className={`page-btn ${currentPage === i + 1 ? "active" : ""}`}
-              onClick={() => goToPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+        <div style={styles.pagination}>
+          <button
+            disabled={currentPage === 1}
+            onClick={() => goToPage(currentPage - 1)}
+          >
+            ← Previous
+          </button>
+          <span>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => goToPage(currentPage + 1)}
+          >
+            Next →
+          </button>
         </div>
       )}
     </section>
   );
 };
+
+const styles = {
+  container: {
+    padding: "50px 8%",
+    fontFamily: "Segoe UI, sans-serif",
+    maxWidth: "1200px",
+    margin: "0 auto",
+  },
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "30px",
+  },
+  backBtn: {
+    textDecoration: "none",
+    color: "#e63946",
+    fontWeight: 500,
+  },
+  grid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+    gap: "20px",
+  },
+  card: {
+    display: "flex",
+    flexDirection: "column",
+    textDecoration: "none",
+    color: "#000",
+    border: "1px solid #eee",
+    borderRadius: "10px",
+    overflow: "hidden",
+    transition: "transform 0.2s",
+  },
+  image: {
+    width: "100%",
+    height: "160px",
+    objectFit: "cover",
+  },
+  cardContent: {
+    padding: "15px",
+  },
+  category: {
+    color: "#e63946",
+    fontWeight: 600,
+    fontSize: "0.8rem",
+  },
+  title: {
+    fontSize: "1rem",
+    margin: "8px 0",
+    fontWeight: 600,
+  },
+  description: {
+    fontSize: "0.85rem",
+    color: "#555",
+  },
+  pagination: {
+    marginTop: "30px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "15px",
+  },
+  loadingWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    height: "60vh",
+    gap: "15px",
+    fontSize: "1.1rem",
+    color: "#555",
+  },
+  spinner: {
+    border: "6px solid #f3f3f3",
+    borderTop: "6px solid #e63946",
+    borderRadius: "50%",
+    width: "50px",
+    height: "50px",
+    animation: "spin 1s linear infinite",
+  },
+  errorWrapper: {
+    padding: "50px 8%",
+    textAlign: "center",
+    color: "red",
+  },
+};
+
+// Add spinner animation keyframes
+const styleSheet = document.styleSheets[0];
+styleSheet.insertRule(`
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+`, styleSheet.cssRules.length);
 
 export default CategoryPage;
