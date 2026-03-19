@@ -12,10 +12,12 @@ const ArticlePage = () => {
     const loadArticle = async () => {
       setLoading(true);
       try {
+        // Fetch only the article by ID
         const res = await fetch(
           `https://news-project-06582-2.onrender.com/news/${id}`
         );
         if (!res.ok) throw new Error("Article not found");
+
         const data = await res.json();
         setArticle(data);
       } catch (err) {
@@ -25,6 +27,7 @@ const ArticlePage = () => {
         setLoading(false);
       }
     };
+
     loadArticle();
   }, [id]);
 
@@ -55,21 +58,16 @@ const ArticlePage = () => {
       </Link>
 
       <h1 style={styles.title}>{article.title}</h1>
-
       <span style={styles.category}>{article.category || "আরও"}</span>
 
-      {article.image && (
-        <img
-          src={article.image}
-          alt={article.title}
-          style={styles.image}
-        />
-      )}
+      {article.image && <img src={article.image} alt={article.title} style={styles.image} />}
 
       <div style={styles.content}>
         {article.content
           ? article.content.split("\n").map((line, index) => (
-              <p key={index}>{line}</p>
+              <p key={index} style={{ marginBottom: "16px" }}>
+                {line}
+              </p>
             ))
           : <p>{article.shortDescription || "No content available."}</p>}
       </div>
@@ -77,7 +75,6 @@ const ArticlePage = () => {
   );
 };
 
-// Inline styles for simplicity
 const styles = {
   container: {
     padding: "50px 8%",
@@ -94,7 +91,7 @@ const styles = {
   },
   title: {
     marginBottom: "10px",
-    fontSize: "2.2rem",
+    fontSize: "2rem",
     fontWeight: 700,
   },
   category: {
