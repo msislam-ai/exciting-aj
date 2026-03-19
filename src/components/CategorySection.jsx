@@ -9,7 +9,6 @@ const CategorySection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fixed categories array
   const categories = [
     "সর্বশেষ",
     "জাতীয়",
@@ -22,12 +21,13 @@ const CategorySection = () => {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const res = await fetchAllNews(1, 100); // page 1, 100 per page
-        const data = res.data || []; // ✅ use res.data, not res itself
+        // ✅ Fetch first page with enough articles (or increase limit)
+        const res = await fetchAllNews(1, 1000); // page 1, 1000 articles
+        const allNews = res.data || []; // <-- use res.data, not res itself
 
         // ===== GROUP NEWS BY CATEGORY =====
         const grouped = {};
-        data.forEach((article) => {
+        allNews.forEach((article) => {
           const cat = (article.category || "আরও").trim();
           if (!grouped[cat]) grouped[cat] = [];
           grouped[cat].push(article);
@@ -44,7 +44,6 @@ const CategorySection = () => {
     loadNews();
   }, []);
 
-  // ===== COUNT FUNCTION =====
   const getCount = (cat) => {
     if (cat === "সর্বশেষ") {
       return Object.values(categoryData).flat().length;
