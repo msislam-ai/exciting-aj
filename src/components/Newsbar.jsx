@@ -14,15 +14,14 @@ const Newsbar = () => {
     const loadNews = async () => {
       setLoading(true);
       try {
-        // Fetch all news (or a large number)
+        // Fetch first 5 latest news directly
         const res = await axios.get(
-          "https://news-project-06582-2.onrender.com/news/all?page=1&limit=1000"
+          "https://news-project-06582-2.onrender.com/news/all?page=1&limit=5"
         );
 
-        let articles = Array.isArray(res.data.data) ? res.data.data : res.data || [];
-
-        // Take the last 5 items for latest news
-        articles = articles.slice(-5);
+        const articles = Array.isArray(res.data.data)
+          ? res.data.data
+          : res.data || [];
 
         setNews(articles);
       } catch (err) {
@@ -66,7 +65,7 @@ const Newsbar = () => {
 
       {/* See More Button */}
       <div className="see-more-container">
-        <button className="see-more-btn" onClick={() => navigate("/AllNewsPage")}>
+        <button className="see-more-btn" onClick={() => navigate("/all-news")}>
           See More News →
         </button>
       </div>
