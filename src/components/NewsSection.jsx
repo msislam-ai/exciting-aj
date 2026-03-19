@@ -9,7 +9,6 @@ const NewsSection = ({ keyword = "" }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Normalize categories
   const normalizeCategory = (cat) => {
     const c = (cat || "").toLowerCase().trim();
     if (c.includes("national") || c.includes("জাতীয়")) return "জাতীয়";
@@ -19,15 +18,18 @@ const NewsSection = ({ keyword = "" }) => {
     return "আরও";
   };
 
-  // Fetch latest news with optional keyword filtering
   const fetchLatestNews = async () => {
     setLoading(true);
     try {
+      // Fetch a reasonable number of news for speed
       const res = await axios.get(
-        `https://news-project-06582-2.onrender.com/news/all?limit=50&sort=latest&_=${Date.now()}`
+        `https://news-project-06582-2.onrender.com/news/all?limit=50&_=${Date.now()}`
       );
 
       let articles = Array.isArray(res.data.data) ? res.data.data : [];
+
+      // Sort by latest date
+      articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
 
       // Filter by keyword if provided
       if (keyword) {
@@ -41,12 +43,12 @@ const NewsSection = ({ keyword = "" }) => {
       }
 
       // Normalize categories
-      articles = articles.map((item) => ({
+      const cleaned = articles.map((item) => ({
         ...item,
         category: normalizeCategory(item.category),
       }));
 
-      setNews(articles);
+      setNews(cleaned);
     } catch (err) {
       console.error(err);
       setError(err.message || "Failed to fetch news");
@@ -58,7 +60,7 @@ const NewsSection = ({ keyword = "" }) => {
   useEffect(() => {
     fetchLatestNews();
 
-    const interval = setInterval(fetchLatestNews, 3 * 60 * 60 * 1000); // 3 hours
+    const interval = setInterval(fetchLatestNews, 3 * 60 * 60 * 1000); // refresh every 3 hours
     return () => clearInterval(interval);
   }, [keyword]);
 
@@ -68,10 +70,10 @@ const NewsSection = ({ keyword = "" }) => {
         <div className="spinner"></div>
       </div>
     );
+
   if (error) return <p className="status-text error">{error}</p>;
   if (!news.length) return <p className="status-text">কোনও খবর নেই</p>;
 
-  // Group by category
   const groupedNews = news.reduce((acc, item) => {
     const category = item.category || "আরও";
     if (!acc[category]) acc[category] = [];
