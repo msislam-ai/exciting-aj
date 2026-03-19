@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { fetchNewsByCategory } from "./newsApi";
 import "./category.css";
 
 const CategorySection = () => {
@@ -13,20 +13,17 @@ const CategorySection = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        // 1️⃣ Fetch categories dynamically
-        const catRes = await axios.get("/api/news/categories");
-        const fetchedCategories = catRes.data || [];
-
+        // 1️⃣ Fetch all categories dynamically
+        const res = await fetch("/api/news/categories");
+        const fetchedCategories = await res.json();
         setCategories(fetchedCategories);
 
         // 2️⃣ Fetch 6 news per category (1 featured + 5 small)
         const grouped = {};
         await Promise.all(
           fetchedCategories.map(async (cat) => {
-            const newsRes = await axios.get(
-              `/api/news/category/${encodeURIComponent(cat)}`
-            );
-            grouped[cat] = newsRes.data.data || newsRes.data || [];
+            const newsRes = await fetchNewsByCategory(cat, 1, 6);
+            grouped[cat] = newsRes.data || [];
           })
         );
 
@@ -49,18 +46,60 @@ const CategorySection = () => {
     <section className="category-section">
       <h1 className="category-title">ক্যাটাগরি সমূহ</h1>
       <div className="category-grid">
-        {categories.map((cat) => (
-          <Link
-            key={cat}
-            to={`/category/${encodeURIComponent(cat)}`}
-            className="category-card"
-          >
-            <CategoryCard
-              title={cat}
-              count={categoryData[cat]?.length || 0}
-            />
-          </Link>
-        ))}
+        {categories.map((cat) => {
+          const newsItems = categoryData[cat] || [];
+          if (newsItems.length === 0) return null;
+
+          const featured = newsItems[0];
+          const smallNews = newsItems.slice(1, 6);
+
+          return (
+            <div key={cat} className="category-block">
+              {/* Category Header */}
+              <div className="category-header">
+                <h2 className="section-title">{cat}</h2>
+                <Link to={`/category/${encodeURIComponent(cat)}`}>
+                  <button className="see-more">আরও →</button>
+                </Link>
+              </div>
+
+              {/* Featured News */}
+              {featured && (
+                <div className="featured-news">
+                  <img
+                    src={featured.image || "/placeholder.jpg"}
+                    alt={featured.title}
+                  />
+                  <div className="featured-content">
+                    <span className="category">{featured.category}</span>
+                    <Link to={`/article/${featured._id}`}>
+                      <h3>{featured.title}</h3>
+                      <p>{featured.shortDescription}</p>
+                    </Link>
+                  </div>
+                </div>
+              )}
+
+              {/* Small News */}
+              <div className="news-grid">
+                {smallNews.map((item) => (
+                  <Link
+                    key={item._id}
+                    to={`/article/${item._id}`}
+                    className="news-card"
+                  >
+                    <img src={item.image || "/placeholder.jpg"} alt={item.title} />
+                    <div className="news-content">
+                      <span className="category">{item.category}</span>
+                      <h4>{item.title}</h4>
+                      <p>{item.shortDescription}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
