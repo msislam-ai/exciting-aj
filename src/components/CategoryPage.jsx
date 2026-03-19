@@ -2,6 +2,9 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
+import "./news.css";
+
+const pageSize = 20; // 20 news per page, no featured
 
 const CategoryPage = () => {
   const { categoryName } = useParams();
@@ -12,22 +15,27 @@ const CategoryPage = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get("page")) || 1;
-  const PAGE_SIZE = 20; // 20 news per page
 
   useEffect(() => {
     const loadNews = async () => {
       setLoading(true);
       try {
-        // Fetch category news with server-side pagination
+        // Fetch only this category
         const res = await axios.get(
-          `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(
-            categoryName
-          )}?page=${currentPage}&limit=${PAGE_SIZE}`
+          `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(categoryName)}`
         );
 
-        const data = res.data;
-        setNews(data.data || []);
-        setTotalPages(data.totalPages || 1);
+        const allNews = Array.isArray(res.data) ? res.data : [];
+
+        // Sort newest first
+        allNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+        // Paginate
+        const startIndex = (currentPage - 1) * pageSize;
+        const pagedNews = allNews.slice(startIndex, startIndex + pageSize);
+
+        setNews(pagedNews);
+        setTotalPages(Math.ceil(allNews.length / pageSize));
       } catch (err) {
         console.error(err);
         setError(err.message || "Failed to fetch news");
@@ -43,50 +51,31 @@ const CategoryPage = () => {
 
   if (loading)
     return (
-      <div style={styles.loadingWrapper}>
-        <div style={styles.spinner}></div>
-        <p>Loading news...</p>
+      <div className="spinner-wrapper">
+        <div className="spinner"></div>
       </div>
     );
 
-  if (error)
-    return (
-      <div style={styles.errorWrapper}>
-        <p>{error}</p>
-        <Link to="/" style={styles.backBtn}>
-          ← Back to Home
-        </Link>
-      </div>
-    );
-
-  if (!news.length)
-    return <p style={{ padding: "50px 8%", textAlign: "center" }}>No news found!</p>;
+  if (error) return <p className="status-text error">{error}</p>;
+  if (!news.length) return <p className="status-text">কোনও খবর নেই</p>;
 
   return (
-    <section style={styles.container}>
-      <div style={styles.header}>
-        <h2>{categoryName}</h2>
-        <Link to="/" style={styles.backBtn}>
-          হোম →
+    <section className="category-page">
+      <div className="category-header">
+        <h2 className="section-title">{categoryName}</h2>
+        <Link to="/">
+          <button className="see-more">হোম →</button>
         </Link>
       </div>
 
-      <div style={styles.grid}>
+      <div className="news-grid">
         {news.map((item) => (
-          <Link
-            key={item._id}
-            to={`/article/${item._id}`}
-            style={styles.card}
-          >
-            <img
-              src={item.image || "/placeholder.jpg"}
-              alt={item.title}
-              style={styles.image}
-            />
-            <div style={styles.cardContent}>
-              <span style={styles.category}>{item.category || "আরও"}</span>
-              <h4 style={styles.title}>{item.title}</h4>
-              <p style={styles.description}>{item.shortDescription}</p>
+          <Link key={item._id} to={`/article/${item._id}`} className="news-card">
+            <img src={item.image || "/placeholder.jpg"} alt={item.title} />
+            <div className="news-content">
+              <span className="category">{item.category}</span>
+              <h4>{item.title}</h4>
+              <p>{item.shortDescription}</p>
             </div>
           </Link>
         ))}
@@ -94,20 +83,14 @@ const CategoryPage = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div style={styles.pagination}>
-          <button
-            disabled={currentPage === 1}
-            onClick={() => goToPage(currentPage - 1)}
-          >
+        <div className="pagination">
+          <button disabled={currentPage === 1} onClick={() => goToPage(currentPage - 1)}>
             ← Previous
           </button>
           <span>
             Page {currentPage} of {totalPages}
           </span>
-          <button
-            disabled={currentPage === totalPages}
-            onClick={() => goToPage(currentPage + 1)}
-          >
+          <button disabled={currentPage === totalPages} onClick={() => goToPage(currentPage + 1)}>
             Next →
           </button>
         </div>
@@ -115,88 +98,5 @@ const CategoryPage = () => {
     </section>
   );
 };
-
-const styles = {
-  container: {
-    padding: "50px 8%",
-    fontFamily: "Segoe UI, sans-serif",
-    maxWidth: "1200px",
-    margin: "0 auto",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "30px",
-  },
-  backBtn: {
-    textDecoration: "none",
-    color: "#e63946",
-    fontWeight: 500,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-    gap: "20px",
-  },
-  card: {
-    display: "flex",
-    flexDirection: "column",
-    textDecoration: "none",
-    color: "#000",
-    border: "1px solid #eee",
-    borderRadius: "10px",
-    overflow: "hidden",
-    transition: "transform 0.2s",
-  },
-  image: {
-    width: "100%",
-    height: "160px",
-    objectFit: "cover",
-  },
-  cardContent: {
-    padding: "15px",
-  },
-  category: {
-    color: "#e63946",
-    fontWeight: 600,
-    fontSize: "0.8rem",
-  },
-  title: {
-    fontSize: "1rem",
-    margin: "8px 0",
-    fontWeight: 600,
-  },
-  description: {
-    fontSize: "0.85rem",
-    color: "#555",
-  },
-  pagination: {
-    marginTop: "30px",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "15px",
-  },
-  loadingWrapper: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "60vh",
-    gap: "15px",
-    fontSize: "1.1rem",
-    color: "#555",
-  },
-
-  errorWrapper: {
-    padding: "50px 8%",
-    textAlign: "center",
-    color: "red",
-  },
-};
-
-// Add spinner animation keyframes
-
 
 export default CategoryPage;
