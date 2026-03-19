@@ -1,59 +1,46 @@
 import { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
-import "./category.css";
 import { Link } from "react-router-dom";
-import { fetchAllNews } from "./newsApi";
+import axios from "axios";
+import "./category.css";
 
 const CategorySection = () => {
+  const [categories, setCategories] = useState([]);
   const [categoryData, setCategoryData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fixed categories array
-  const categories = [
-    "সর্বশেষ",
-    "জাতীয়",
-    "রাজনীতি",
-    "খেলা",
-    "আন্তর্জাতিক",
-    "আরও",
-  ];
-
   useEffect(() => {
-    const loadNews = async () => {
+    const loadCategories = async () => {
       try {
-        const res = await fetchAllNews();
+        // 1️⃣ Fetch categories dynamically
+        const catRes = await axios.get("/api/news/categories");
+        const fetchedCategories = catRes.data || [];
 
-        // ✅ Ensure data is an array to prevent 'forEach' errors
-        const data = Array.isArray(res) ? res : res.data || [];
+        setCategories(fetchedCategories);
 
-        // ===== GROUP NEWS BY CATEGORY (trimmed to avoid mismatch) =====
+        // 2️⃣ Fetch 6 news per category (1 featured + 5 small)
         const grouped = {};
-        data.forEach((article) => {
-          const cat = (article.category || "আরও").trim(); // trim spaces
-          if (!grouped[cat]) grouped[cat] = [];
-          grouped[cat].push(article);
-        });
+        await Promise.all(
+          fetchedCategories.map(async (cat) => {
+            const newsRes = await axios.get(
+              `/api/news/category/${encodeURIComponent(cat)}`
+            );
+            grouped[cat] = newsRes.data.data || newsRes.data || [];
+          })
+        );
 
         setCategoryData(grouped);
       } catch (err) {
+        console.error(err);
         setError(err.message || "Failed to fetch categories");
       } finally {
         setLoading(false);
       }
     };
 
-    loadNews();
+    loadCategories();
   }, []);
-
-  // ===== COUNT FUNCTION =====
-  const getCount = (cat) => {
-    if (cat === "সর্বশেষ") {
-      // sum of all categories
-      return Object.values(categoryData).flat().length;
-    }
-    return categoryData[cat]?.length || 0;
-  };
 
   if (loading) return <p className="status-text">Loading categories...</p>;
   if (error) return <p className="status-text error">{error}</p>;
@@ -61,7 +48,6 @@ const CategorySection = () => {
   return (
     <section className="category-section">
       <h1 className="category-title">ক্যাটাগরি সমূহ</h1>
-
       <div className="category-grid">
         {categories.map((cat) => (
           <Link
@@ -69,7 +55,10 @@ const CategorySection = () => {
             to={`/category/${encodeURIComponent(cat)}`}
             className="category-card"
           >
-            <CategoryCard title={cat} count={getCount(cat)} />
+            <CategoryCard
+              title={cat}
+              count={categoryData[cat]?.length || 0}
+            />
           </Link>
         ))}
       </div>
