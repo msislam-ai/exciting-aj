@@ -1,6 +1,7 @@
+// src/components/AllNewsPage.jsx
 import React, { useState, useEffect } from "react";
-import "./allNews.css";
 import { Link } from "react-router-dom";
+import "./allNews.css";
 
 const AllNewsPage = () => {
   const [news, setNews] = useState([]);
@@ -9,7 +10,7 @@ const AllNewsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const LIMIT = 50; // number of news per page
+  const LIMIT = 100; // 100 news per page
 
   const fetchNews = async (pageNumber = 1) => {
     setLoading(true);
@@ -21,8 +22,8 @@ const AllNewsPage = () => {
 
       const data = await res.json();
 
-      // Expect backend to return { data: [...], page: 1, totalPages: n }
-      setNews(data.data || data);
+      // backend should return { data: [...], page: n, totalPages: n }
+      setNews(data.data || []);
       setPage(data.page || pageNumber);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -37,8 +38,8 @@ const AllNewsPage = () => {
     fetchNews(page);
   }, [page]);
 
-  if (error) return <p className="error">{error}</p>;
   if (loading) return <h2 className="loading">Loading news...</h2>;
+  if (error) return <p className="error">{error}</p>;
   if (!news.length) return <p>No news available</p>;
 
   return (
@@ -49,7 +50,7 @@ const AllNewsPage = () => {
         {news.map((article) => (
           <div key={article._id || article.id} className="news-card">
             <div className="image-wrapper">
-              <img src={article.image} alt={article.title} />
+              <img src={article.image || "/placeholder.jpg"} alt={article.title} />
             </div>
             <div className="news-content">
               <Link to={`/article/${article.id || article._id}`}>
