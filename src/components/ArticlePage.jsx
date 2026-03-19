@@ -1,4 +1,3 @@
-// src/components/ArticlePage.jsx
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchAllNews } from "./newsApi"; // make sure this points to your API file
@@ -12,7 +11,9 @@ const ArticlePage = () => {
   useEffect(() => {
     const loadArticle = async () => {
       try {
-        const allNews = await fetchAllNews();
+        // ✅ Fetch first page (you can increase limit if needed)
+        const res = await fetchAllNews(1, 1000); // page 1, 1000 articles
+        const allNews = res.data || []; // use res.data, not res itself
 
         // Find the article by id or _id
         const selected = allNews.find(
@@ -33,6 +34,7 @@ const ArticlePage = () => {
     loadArticle();
   }, [id]);
 
+  if (loading) return <p style={{ padding: "20px" }}>Loading article...</p>;
   if (error) return <p style={{ padding: "20px", color: "red" }}>{error}</p>;
   if (!article) return <p style={{ padding: "20px" }}>Article not found!</p>;
 
