@@ -1,14 +1,15 @@
-// src/components/Newsbar.jsx
-import React, { useState, useEffect } from "react";
-import "./newsbar.css";
-import { Link, useNavigate } from "react-router-dom";
+// src/components/NewsSection.jsx
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
+import "./news.css";
 
-const Newsbar = () => {
+const NewsSection = () => {
   const [news, setNews] = useState([]);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [error, setError] = useState(null);
+
+  const categoryOrder = ["সর্বশেষ", "জাতীয়", "রাজনীতি", "খেলা", "আন্তর্জাতিক", "আরও"];
 
   // Normalize categories
   const normalizeCategory = (cat) => {
@@ -20,17 +21,20 @@ const Newsbar = () => {
     return "আরও";
   };
 
-  const loadNews = async () => {
+  const fetchLatestNews = async () => {
     setLoading(true);
     try {
-      // ✅ Fetch only latest 5 news directly from server
+      // ✅ Fetch only latest 50 news (adjust limit as needed)
       const res = await axios.get(
-        `https://news-project-06582-2.onrender.com/news/all?page=1&limit=5&sort=latest&_=${Date.now()}`
+        `https://news-project-06582-2.onrender.com/news/all?page=1&limit=50&_=${Date.now()}`
       );
 
-      const articles = Array.isArray(res.data.data) ? res.data.data : [];
+      let articles = Array.isArray(res.data.data) ? res.data.data : res.data || [];
 
-      // ✅ Normalize categories
+      // Sort by latest date
+      articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+      // Map categories
       const cleaned = articles.map((item) => ({
         ...item,
         category: normalizeCategory(item.category),
@@ -46,10 +50,10 @@ const Newsbar = () => {
   };
 
   useEffect(() => {
-    loadNews();
+    fetchLatestNews();
 
     // Auto-refresh every 3 hours
-    const interval = setInterval(loadNews, 3 * 60 * 60 * 1000);
+    const interval = setInterval(fetchLatestNews, 3 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -61,34 +65,75 @@ const Newsbar = () => {
     );
 
   if (error) return <p className="status-text error">{error}</p>;
-  if (!news.length) return <p className="status-text">No news available.</p>;
+  if (!news.length) return <p className="status-text">কোনও খবর নেই</p>;
+
+  // Group news by category
+  const groupedNews = news.reduce((acc, item) => {
+    const cat = item.category || "আরও";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(item);
+    return acc;
+  }, {});
 
   return (
-    <div className="news-wrapper">
-      <div className="news-container">
-        {news.map((article) => (
-          <div key={article._id || article.id} className="news-card">
-            <div className="image-wrapper">
-              <img src={article.image || "/placeholder.jpg"} alt={article.title} />
-              <div className="overlay" />
-            </div>
-            <div className="news-content">
-              <Link to={`/article/${article._id || article.id}`}>
-                <h3>{article.title}</h3>
+    <section className="news">
+      {categoryOrder.map((category) => {
+        const categoryNews =
+          category === "সর্বশেষ"
+            ? news.slice(0, 5) // latest 5
+            : groupedNews[category] || [];
+
+        if (category !== "সর্বশেষ" && categoryNews.length === 0) return null;
+
+        return (
+          <div key={category} className="category-section">
+            {/* Header */}
+            <div className="category-header">
+              <h2 className="section-title">{category}</h2>
+              <Link to={`/category/${encodeURIComponent(category)}`}>
+                <button className="see-more">আরও →</button>
               </Link>
-              <span className="category">{article.category}</span>
+            </div>
+
+            {/* Featured */}
+            {categoryNews[0] && (
+              <div className="featured-news">
+                <img
+                  src={categoryNews[0].image || "/placeholder.jpg"}
+                  alt={categoryNews[0].title}
+                />
+                <div className="featured-content">
+                  <span className="category">{categoryNews[0].category}</span>
+                  <Link to={`/article/${categoryNews[0]._id || categoryNews[0].id}`}>
+                    <h3>{categoryNews[0].title}</h3>
+                    <p>{categoryNews[0].shortDescription}</p>
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Small Cards */}
+            <div className="news-grid">
+              {categoryNews.slice(1, 5).map((item) => (
+                <Link
+                  key={item._id || item.id}
+                  to={`/article/${item._id || item.id}`}
+                  className="news-card"
+                >
+                  <img src={item.image || "/placeholder.jpg"} alt={item.title} />
+                  <div className="news-content">
+                    <span className="category">{item.category}</span>
+                    <h4>{item.title}</h4>
+                    <p>{item.shortDescription}</p>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
-        ))}
-      </div>
-
-      <div className="see-more-container">
-        <button className="see-more-btn" onClick={() => navigate("/AllNewsPage")}>
-          See More News →
-        </button>
-      </div>
-    </div>
+        );
+      })}
+    </section>
   );
 };
 
-export default Newsbar;
+export default NewsSection;
