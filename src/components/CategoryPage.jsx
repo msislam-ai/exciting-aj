@@ -1,129 +1,77 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import CategoryCard from "./CategoryCard";
+import "./category.css";
+import { Link } from "react-router-dom";
 import { fetchAllNews } from "./newsApi";
-import "./news.css";
 
-const CategoryPage = () => {
-  const { categoryName } = useParams();
-
-  const [news, setNews] = useState([]);
-  const [page, setPage] = useState(1); // ✅ pagination
-  const [totalPages, setTotalPages] = useState(1);
-
+const CategorySection = () => {
+  const [categoryData, setCategoryData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Fixed categories array
+  const categories = [
+    "সর্বশেষ",
+    "জাতীয়",
+    "রাজনীতি",
+    "খেলা",
+    "আন্তর্জাতিক",
+    "আরও",
+  ];
 
   useEffect(() => {
     const loadNews = async () => {
       try {
-        setLoading(true);
+        const res = await fetchAllNews(1, 100); // page 1, 100 per page
+        const data = res.data || []; // ✅ use res.data, not res itself
 
-        // ✅ FIX: use paginated API correctly
-        const res = await fetchAllNews(page, 50);
-        const allNews = res.data || [];
+        // ===== GROUP NEWS BY CATEGORY =====
+        const grouped = {};
+        data.forEach((article) => {
+          const cat = (article.category || "আরও").trim();
+          if (!grouped[cat]) grouped[cat] = [];
+          grouped[cat].push(article);
+        });
 
-        setTotalPages(res.totalPages || 1);
-
-        // ✅ Normalize category
-        const cleaned = allNews.map((item) => ({
-          ...item,
-          category: (item.category || "আরও").trim(),
-        }));
-
-        // ✅ Filter
-        let filteredNews = [];
-
-        if (categoryName === "সর্বশেষ") {
-          filteredNews = cleaned;
-        } else {
-          filteredNews = cleaned.filter(
-            (item) =>
-              item.category.toLowerCase() ===
-              categoryName.trim().toLowerCase()
-          );
-        }
-
-        setNews(filteredNews);
+        setCategoryData(grouped);
       } catch (err) {
-        setError(err.message || "Failed to fetch news");
+        setError(err.message || "Failed to fetch categories");
       } finally {
         setLoading(false);
       }
     };
 
     loadNews();
-  }, [categoryName, page]);
+  }, []);
 
-  if (loading) return <p className="status-text">Loading...</p>;
+  // ===== COUNT FUNCTION =====
+  const getCount = (cat) => {
+    if (cat === "সর্বশেষ") {
+      return Object.values(categoryData).flat().length;
+    }
+    return categoryData[cat]?.length || 0;
+  };
+
+  if (loading) return <p className="status-text">Loading categories...</p>;
   if (error) return <p className="status-text error">{error}</p>;
-  if (news.length === 0) return <p className="status-text">কোনও খবর নেই</p>;
 
   return (
-    <section className="news">
-      {/* ===== HEADER ===== */}
-      <div className="category-header">
-        <h2 className="section-title">{categoryName}</h2>
+    <section className="category-section">
+      <h1 className="category-title">ক্যাটাগরি সমূহ</h1>
 
-        <Link to="/">
-          <button className="see-more">হোম →</button>
-        </Link>
-      </div>
-
-      {/* ===== FEATURED ===== */}
-      {news[0] && (
-        <div className="featured-news">
-          <img src={news[0].image || "/placeholder.jpg"} alt={news[0].title} />
-
-          <div className="featured-content">
-            <span className="category">{news[0].category}</span>
-
-            <Link to={`/article/${news[0]._id}`}>
-              <h3>{news[0].title}</h3>
-              <p>{news[0].shortDescription}</p>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* ===== GRID ===== */}
-      <div className="news-grid">
-        {news.slice(1).map((item) => (
-          <Link key={item._id} to={`/article/${item._id}`} className="news-card">
-            <img src={item.image || "/placeholder.jpg"} alt={item.title} />
-
-            <div className="news-content">
-              <span className="category">{item.category}</span>
-              <h4>{item.title}</h4>
-              <p>{item.shortDescription}</p>
-            </div>
+      <div className="category-grid">
+        {categories.map((cat) => (
+          <Link
+            key={cat}
+            to={`/category/${encodeURIComponent(cat)}`}
+            className="category-card"
+          >
+            <CategoryCard title={cat} count={getCount(cat)} />
           </Link>
         ))}
-      </div>
-
-      {/* ===== PAGINATION ===== */}
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-          style={{ marginRight: "10px" }}
-        >
-          ← Prev
-        </button>
-
-        <span>
-          Page {page} of {totalPages}
-        </span>
-
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-          style={{ marginLeft: "10px" }}
-        >
-          Next →
-        </button>
       </div>
     </section>
   );
 };
 
-export default CategoryPage;
+export default CategorySection;
