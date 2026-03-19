@@ -1,3 +1,4 @@
+// src/components/NewsSection.jsx
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -7,6 +8,18 @@ const NewsSection = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // ✅ Normalize category (VERY IMPORTANT)
+  const normalizeCategory = (cat) => {
+    const c = (cat || "").toLowerCase().trim();
+
+    if (c.includes("national") || c.includes("জাতীয়")) return "জাতীয়";
+    if (c.includes("politics") || c.includes("রাজনীতি")) return "রাজনীতি";
+    if (c.includes("sports") || c.includes("খেলা")) return "খেলা";
+    if (c.includes("international") || c.includes("আন্তর্জাতিক")) return "আন্তর্জাতিক";
+
+    return "আরও";
+  };
 
   useEffect(() => {
     const loadNews = async () => {
@@ -19,16 +32,17 @@ const NewsSection = () => {
           ? res.data.data
           : res.data || [];
 
-        // ✅ take latest 50 from END
+        // ✅ Take latest from END and reverse (latest first)
         articles = articles.slice(-50).reverse();
 
         const cleaned = articles.map((item) => ({
           ...item,
-          category: (item.category || "আরও").trim(),
+          category: normalizeCategory(item.category),
         }));
 
         setNews(cleaned);
       } catch (err) {
+        console.error(err);
         setError(err.message || "Failed to fetch news");
       } finally {
         setLoading(false);
@@ -48,7 +62,7 @@ const NewsSection = () => {
   if (error) return <p className="status-text error">{error}</p>;
   if (!news.length) return <p className="status-text">কোনও খবর নেই</p>;
 
-  // ===== GROUP =====
+  // ✅ Group by normalized category
   const groupedNews = news.reduce((acc, item) => {
     const category = item.category || "আরও";
     if (!acc[category]) acc[category] = [];
@@ -70,13 +84,14 @@ const NewsSection = () => {
       {categoryOrder.map((category) => {
         const categoryNews =
           category === "সর্বশেষ"
-            ? news.slice(0, 5) // latest 5 (already reversed)
+            ? news.slice(0, 5) // latest 5
             : groupedNews[category] || [];
 
         if (category !== "সর্বশেষ" && categoryNews.length === 0) return null;
 
         return (
           <div key={category} className="category-section">
+            {/* Header */}
             <div className="category-header">
               <h2 className="section-title">{category}</h2>
               <Link to={`/category/${encodeURIComponent(category)}`}>
@@ -84,7 +99,7 @@ const NewsSection = () => {
               </Link>
             </div>
 
-            {/* FEATURED */}
+            {/* Featured */}
             {categoryNews[0] && (
               <div className="featured-news">
                 <img
@@ -107,7 +122,7 @@ const NewsSection = () => {
               </div>
             )}
 
-            {/* SMALL CARDS */}
+            {/* Small Cards */}
             <div className="news-grid">
               {categoryNews.slice(1, 5).map((item) => (
                 <Link
