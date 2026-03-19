@@ -22,7 +22,10 @@ const CategorySection = () => {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const data = await fetchAllNews();
+        const res = await fetchAllNews();
+
+        // ✅ Ensure data is an array to prevent 'forEach' errors
+        const data = Array.isArray(res) ? res : res.data || [];
 
         // ===== GROUP NEWS BY CATEGORY (trimmed to avoid mismatch) =====
         const grouped = {};
@@ -52,6 +55,7 @@ const CategorySection = () => {
     return categoryData[cat]?.length || 0;
   };
 
+  if (loading) return <p className="status-text">Loading categories...</p>;
   if (error) return <p className="status-text error">{error}</p>;
 
   return (
@@ -74,4 +78,3 @@ const CategorySection = () => {
 };
 
 export default CategorySection;
-
