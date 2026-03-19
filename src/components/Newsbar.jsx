@@ -5,48 +5,36 @@ import { Link } from "react-router-dom";
 const Newsbar = () => {
   const [news, setNews] = useState([]);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1); // current page
-  const [limit] = useState(5); // items per page
-  const [hasMore, setHasMore] = useState(true); // whether more pages exist
-  const [loading, setLoading] = useState(false);
-
-  const fetchNews = async (page, limit) => {
-    try {
-      setLoading(true);
-      const res = await fetch(
-        `https://news-project-06582-2.onrender.com/news/all?page=${page}&limit=${limit}`
-      );
-
-      if (!res.ok) throw new Error("Server error");
-
-      const data = await res.json();
-
-      if (data.length < limit) setHasMore(false); // no more pages
-      setNews((prev) => [...prev, ...data]); // append new news
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch news");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    fetchNews(page, limit);
-  }, [page]);
+    fetch("https://news-project-06582-2.onrender.com/news/all")
+      .then((res) => {
+        if (!res.ok) throw new Error("Server error");
+        return res.json();
+      })
+      .then((data) => setNews(data))
+      .catch((err) => {
+        console.error(err);
+        setError("Failed to fetch news");
+      });
+  }, []);
 
   if (error) return <p className="error">{error}</p>;
-  if (!news.length && loading) return <h2 className="loading">Loading news...</h2>;
+  if (!news.length) return <h2 className="loading">Loading latest news...</h2>;
+
+  const visibleNews = showAll ? news : news.slice(0, 5);
 
   return (
     <div className="news-wrapper">
       <div className="news-container">
-        {news.map((article) => (
+        {visibleNews.map((article) => (
           <div key={article._id || article.id} className="news-card">
             <div className="image-wrapper">
               <img src={article.image} alt={article.title} />
               <div className="overlay" />
             </div>
+
             <div className="news-content">
               <Link to={`/article/${article.id || article._id}`}>
                 <h3>{article.title}</h3>
@@ -56,17 +44,25 @@ const Newsbar = () => {
         ))}
       </div>
 
-      {/* Pagination Buttons */}
+      {/* Buttons */}
       <div className="see-more-container">
-        {hasMore && !loading && (
+        {!showAll && news.length > 5 && (
           <button
             className="see-more-btn"
-            onClick={() => setPage((prev) => prev + 1)}
+            onClick={() => setShowAll(true)}
           >
-            Load More News →
+            See More News →
           </button>
         )}
-        {loading && <p>Loading...</p>}
+
+        {showAll && (
+          <button
+            className="see-less-btn"
+            onClick={() => setShowAll(false)}
+          >
+            ← See Less
+          </button>
+        )}
       </div>
     </div>
   );
