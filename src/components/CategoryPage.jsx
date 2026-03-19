@@ -19,27 +19,42 @@ const CategoryPage = () => {
     const loadNews = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        // ✅ Fetch news for category
+        // ✅ Fetch all news
         const res = await axios.get(
-          `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(categoryName)}`
+          "https://news-project-06582-2.onrender.com/news/all"
         );
-
         const allNews = Array.isArray(res.data) ? res.data : [];
 
-        // Sort newest first
-        const sortedNews = allNews.sort(
+        // ✅ Filter by category (handle 'সর্বশেষ' = latest)
+        const filteredNews =
+          categoryName === "সর্বশেষ"
+            ? allNews
+            : allNews.filter(
+                (item) =>
+                  item.category?.trim() === categoryName
+              );
+
+        if (filteredNews.length === 0) {
+          setNews([]);
+          setTotalPages(1);
+          return;
+        }
+
+        // ✅ Sort newest first
+        const sortedNews = filteredNews.sort(
           (a, b) => new Date(b.pubDate) - new Date(a.pubDate)
         );
 
-        // Slice for current page
+        // ✅ Slice for pagination
         const startIndex = (currentPage - 1) * pageSize;
         const pagedNews = sortedNews.slice(startIndex, startIndex + pageSize);
 
         setNews(pagedNews);
-        setTotalPages(Math.ceil(allNews.length / pageSize));
+        setTotalPages(Math.ceil(filteredNews.length / pageSize));
       } catch (err) {
-        console.log(err);
+        console.error(err);
         setError(err.message || "Failed to fetch news");
       } finally {
         setLoading(false);
@@ -53,15 +68,18 @@ const CategoryPage = () => {
     setSearchParams({ page });
   };
 
+  // ===== Loading / Error / Empty States =====
   if (loading) return <p className="status-text">Loading news...</p>;
   if (error) return <p className="status-text error">{error}</p>;
   if (news.length === 0) return <p className="status-text">কোনও খবর নেই</p>;
 
+  // ===== Featured + Small News =====
   const featured = news[0];
   const smallNews = news.slice(1);
 
   return (
     <section className="category-page">
+      {/* Header */}
       <div className="category-header">
         <h2 className="section-title">{categoryName}</h2>
         <Link to="/">
@@ -69,10 +87,13 @@ const CategoryPage = () => {
         </Link>
       </div>
 
-      {/* Featured */}
+      {/* Featured News */}
       {featured && (
         <div className="featured-news">
-          <img src={featured.image || "/placeholder.jpg"} alt={featured.title} />
+          <img
+            src={featured.image || "https://via.placeholder.com/600x400"}
+            alt={featured.title}
+          />
           <div className="featured-content">
             <span className="category">{featured.category}</span>
             <Link to={`/article/${featured._id}`}>
@@ -83,11 +104,14 @@ const CategoryPage = () => {
         </div>
       )}
 
-      {/* Small News */}
+      {/* Small News Grid */}
       <div className="news-grid">
         {smallNews.map((item) => (
           <Link key={item._id} to={`/article/${item._id}`} className="news-card">
-            <img src={item.image || "/placeholder.jpg"} alt={item.title} />
+            <img
+              src={item.image || "https://via.placeholder.com/400x250"}
+              alt={item.title}
+            />
             <div className="news-content">
               <span className="category">{item.category}</span>
               <h4>{item.title}</h4>
