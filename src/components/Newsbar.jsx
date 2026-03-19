@@ -1,42 +1,27 @@
 import React, { useState, useEffect } from "react";
 import "./newsbar.css";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Newsbar = () => {
   const [news, setNews] = useState([]);
-  const [page, setPage] = useState(1); // current page
-  const [totalPages, setTotalPages] = useState(1); // total pages from backend
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  const LIMIT = 5; // number of news per page
-
-  const fetchNews = async (pageNumber = 1) => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `https://news-project-06582-2.onrender.com/news/all?page=${pageNumber}&limit=${LIMIT}`
-      );
-      if (!res.ok) throw new Error("Server error");
-
-      const data = await res.json();
-      setNews(data.data); // paginated news
-      setPage(data.page);
-      setTotalPages(data.totalPages);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to fetch news");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchNews(page);
-  }, [page]);
+    fetch("https://news-project-06582-2.onrender.com/news/all?page=1&limit=5") // show top 5 on homepage
+      .then((res) => {
+        if (!res.ok) throw new Error("Server error");
+        return res.json();
+      })
+      .then((data) => setNews(data.data || data))
+      .catch((err) => {
+        console.error(err);
+        setError("Failed to fetch news");
+      });
+  }, []);
 
   if (error) return <p className="error">{error}</p>;
-  if (loading) return <h2 className="loading">Loading latest news...</h2>;
+  if (!news.length) return <h2 className="loading">Loading latest news...</h2>;
 
   return (
     <div className="news-wrapper">
@@ -57,24 +42,13 @@ const Newsbar = () => {
         ))}
       </div>
 
-      {/* Pagination Buttons */}
-      <div className="pagination-container">
+      {/* See More Button */}
+      <div className="see-more-container">
         <button
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          disabled={page === 1}
+          className="see-more-btn"
+          onClick={() => navigate("/all-news")}
         >
-          ← Previous
-        </button>
-
-        <span>
-          Page {page} of {totalPages}
-        </span>
-
-        <button
-          onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
-          disabled={page === totalPages}
-        >
-          Next →
+          See More News →
         </button>
       </div>
     </div>
