@@ -7,11 +7,18 @@ export const fetchAllNews = async (page = 1, limit = 50) => {
   try {
     const res = await fetch(`${BASE_URL}/news/all?page=${page}&limit=${limit}`);
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch news");
-    }
+    if (!res.ok) throw new Error("Failed to fetch news");
 
-    return await res.json(); // returns { page, limit, total, totalPages, data }
+    const json = await res.json();
+
+    // Ensure consistent structure
+    return {
+      page: json.page || page,
+      limit: json.limit || limit,
+      total: json.total || 0,
+      totalPages: json.totalPages || 0,
+      data: Array.isArray(json.data) ? json.data : [],
+    };
   } catch (error) {
     console.error("❌ fetchAllNews:", error.message);
     return { page, limit, total: 0, totalPages: 0, data: [] };
@@ -27,11 +34,17 @@ export const fetchNewsByCategory = async (category, page = 1, limit = 50) => {
       `${BASE_URL}/news/category/${encodeURIComponent(category)}?page=${page}&limit=${limit}`
     );
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch category news");
-    }
+    if (!res.ok) throw new Error("Failed to fetch category news");
 
-    return await res.json(); // returns { page, limit, total, totalPages, data }
+    const json = await res.json();
+
+    return {
+      page: json.page || page,
+      limit: json.limit || limit,
+      total: json.total || 0,
+      totalPages: json.totalPages || 0,
+      data: Array.isArray(json.data) ? json.data : [],
+    };
   } catch (error) {
     console.error("❌ fetchNewsByCategory:", error.message);
     return { page, limit, total: 0, totalPages: 0, data: [] };
@@ -39,39 +52,51 @@ export const fetchNewsByCategory = async (category, page = 1, limit = 50) => {
 };
 
 /* =========================
-   Fetch Latest News
+   Fetch Latest News (latest 10 news)
 ========================= */
 export const fetchLatestNews = async () => {
   try {
     const res = await fetch(`${BASE_URL}/news/latest`);
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch latest news");
-    }
+    if (!res.ok) throw new Error("Failed to fetch latest news");
 
-    return await res.json();
+    const data = await res.json();
+
+    return {
+      page: 1,
+      limit: data.length || 0,
+      total: data.length || 0,
+      totalPages: 1,
+      data: Array.isArray(data) ? data : [],
+    };
   } catch (error) {
     console.error("❌ fetchLatestNews:", error.message);
-    return [];
+    return { page: 1, limit: 0, total: 0, totalPages: 0, data: [] };
   }
 };
 
 /* =========================
    Search News
 ========================= */
-export const searchNews = async (query) => {
+export const searchNews = async (query, page = 1, limit = 50) => {
   try {
     const res = await fetch(
-      `${BASE_URL}/news/search?q=${encodeURIComponent(query)}`
+      `${BASE_URL}/news/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
     );
 
-    if (!res.ok) {
-      throw new Error("Search failed");
-    }
+    if (!res.ok) throw new Error("Search failed");
 
-    return await res.json();
+    const json = await res.json();
+
+    return {
+      page: json.page || page,
+      limit: json.limit || limit,
+      total: json.total || 0,
+      totalPages: json.totalPages || 0,
+      data: Array.isArray(json.data) ? json.data : [],
+    };
   } catch (error) {
     console.error("❌ searchNews:", error.message);
-    return [];
+    return { page, limit, total: 0, totalPages: 0, data: [] };
   }
 };
