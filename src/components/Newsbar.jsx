@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import "./newsbar.css";
 import { Link, useNavigate } from "react-router-dom";
-import { fetchAllNews } from "./newsApi"; // connect to your API
+import axios from "axios";
 
 const Newsbar = () => {
   const [news, setNews] = useState([]);
@@ -12,10 +12,17 @@ const Newsbar = () => {
 
   useEffect(() => {
     const loadNews = async () => {
+      setLoading(true);
       try {
-        // Fetch first page with 5 articles
-        const data = await fetchAllNews(1, 5);
-        const articles = data.data || []; // ✅ make sure it's an array
+        // Fetch first 5 latest news directly
+        const res = await axios.get(
+          "https://news-project-06582-2.onrender.com/news/all?page=1&limit=5"
+        );
+
+        const articles = Array.isArray(res.data.data)
+          ? res.data.data
+          : res.data || [];
+
         setNews(articles);
       } catch (err) {
         console.error(err);
@@ -28,7 +35,12 @@ const Newsbar = () => {
     loadNews();
   }, []);
 
-  if (loading) return <h2 className="loading">Loading latest news...</h2>;
+  if (loading)
+    return (
+      <div className="spinner-wrapper">
+        <div className="spinner"></div>
+      </div>
+    );
   if (error) return <p className="error">{error}</p>;
   if (!news.length) return <p className="status-text">No news available.</p>;
 
@@ -53,10 +65,7 @@ const Newsbar = () => {
 
       {/* See More Button */}
       <div className="see-more-container">
-        <button
-          className="see-more-btn"
-          onClick={() => navigate("/all-news")}
-        >
+        <button className="see-more-btn" onClick={() => navigate("/all-news")}>
           See More News →
         </button>
       </div>
