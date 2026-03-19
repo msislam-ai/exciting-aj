@@ -9,7 +9,7 @@ const CategorySection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fixed categories array
+  // Fixed categories array
   const categories = [
     "সর্বশেষ",
     "জাতীয়",
@@ -22,12 +22,13 @@ const CategorySection = () => {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const data = await fetchAllNews();
+        const res = await fetchAllNews(1, 100); // page 1, 100 per page
+        const data = res.data || []; // ✅ use res.data, not res itself
 
-        // ===== GROUP NEWS BY CATEGORY (trimmed to avoid mismatch) =====
+        // ===== GROUP NEWS BY CATEGORY =====
         const grouped = {};
         data.forEach((article) => {
-          const cat = (article.category || "আরও").trim(); // trim spaces
+          const cat = (article.category || "আরও").trim();
           if (!grouped[cat]) grouped[cat] = [];
           grouped[cat].push(article);
         });
@@ -46,12 +47,12 @@ const CategorySection = () => {
   // ===== COUNT FUNCTION =====
   const getCount = (cat) => {
     if (cat === "সর্বশেষ") {
-      // sum of all categories
       return Object.values(categoryData).flat().length;
     }
     return categoryData[cat]?.length || 0;
   };
 
+  if (loading) return <p className="status-text">Loading categories...</p>;
   if (error) return <p className="status-text error">{error}</p>;
 
   return (
