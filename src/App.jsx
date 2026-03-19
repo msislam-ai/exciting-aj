@@ -1,62 +1,50 @@
-// src/App.jsx
 import { useState } from "react";
+import reactLogo from "./assets/react.svg";
+import viteLogo from "/icon111.jpg";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Navbar from "./components/Navbar";
-import Footer from "./components/Footer";
 import FullPageLoader from "./components/FullPageLoader";
-import Herosection from "./components/Herosection";
+import "./App.css";
+import "./components/Navbar";
+import Navbar from "./components/Navbar";
+import Herosection from "./components/herosection";
 import Newsbar from "./components/Newsbar";
 import CategorySection from "./components/CategorySection";
 import NewsSection from "./components/NewsSection";
-import AllNewsPage from "./components/AllNewsPage"; // <-- added AllNewsPage
+import Footer from "./components/Footer";
 import CategoryPage from "./components/CategoryPage";
 import ArticlePage from "./components/ArticlePage";
-
-import "./App.css";
+import AllNewsPage from "./components/AllNewsPage";
 
 function App() {
-  const [homeLoading, setHomeLoading] = useState(true);
+  const [count, setCount] = useState(0);
 
   return (
     <Router>
       <Navbar />
-
       <Routes>
         {/* Home Page */}
         <Route
           path="/"
           element={
-            <FullPageLoader loading={homeLoading} setLoading={setHomeLoading}>
+            <>
+            <FullPageLoader>
               <Herosection />
               <Newsbar />
               <CategorySection />
               <NewsSection />
-            </FullPageLoader>
+              </FullPageLoader>
+            </>
           }
         />
-
-        {/* All News Page */}
-        <Route path="/all-news" element={<AllNewsPage />} />
 
         {/* Dynamic Category Page */}
         <Route path="/category/:categoryName" element={<CategoryPage />} />
-
         {/* Dynamic Article Page */}
         <Route path="/article/:id" element={<ArticlePage />} />
 
-        {/* Fallback 404 Page */}
-        <Route
-          path="*"
-          element={
-            <div style={{ padding: "50px", textAlign: "center" }}>
-              <h1>404 - Page Not Found</h1>
-              <p>The page you are looking for does not exist.</p>
-            </div>
-          }
-        />
+        <Route path="/AllNewsPage" element={<AllNewsPage />} />
       </Routes>
-
       <Footer />
     </Router>
   );
