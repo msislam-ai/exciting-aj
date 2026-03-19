@@ -9,7 +9,7 @@ const NewsSection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Normalize category (VERY IMPORTANT)
+  // ✅ Normalize categories
   const normalizeCategory = (cat) => {
     const c = (cat || "").toLowerCase().trim();
 
@@ -21,35 +21,46 @@ const NewsSection = () => {
     return "আরও";
   };
 
+  // ✅ Fetch function
+  const loadNews = async () => {
+    try {
+      const res = await axios.get(
+        `https://news-project-06582-2.onrender.com/news/all?page=1&limit=1000&_=${Date.now()}`
+      );
+
+      let articles = Array.isArray(res.data.data)
+        ? res.data.data
+        : res.data || [];
+
+      // ✅ Sort by latest date
+      articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+      // ✅ Take latest 50
+      articles = articles.slice(0, 50);
+
+      const cleaned = articles.map((item) => ({
+        ...item,
+        category: normalizeCategory(item.category),
+      }));
+
+      setNews(cleaned);
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "Failed to fetch news");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Initial load + auto refresh
   useEffect(() => {
-    const loadNews = async () => {
-      try {
-        const res = await axios.get(
-          "https://news-project-06582-2.onrender.com/news/all?page=1&limit=1000"
-        );
-
-        let articles = Array.isArray(res.data.data)
-          ? res.data.data
-          : res.data || [];
-
-        // ✅ Take latest from END and reverse (latest first)
-        articles = articles.slice(-50).reverse();
-
-        const cleaned = articles.map((item) => ({
-          ...item,
-          category: normalizeCategory(item.category),
-        }));
-
-        setNews(cleaned);
-      } catch (err) {
-        console.error(err);
-        setError(err.message || "Failed to fetch news");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadNews();
+
+    const interval = setInterval(() => {
+      loadNews();
+    }, 30000); // refresh every 30s
+
+    return () => clearInterval(interval);
   }, []);
 
   if (loading)
@@ -62,7 +73,7 @@ const NewsSection = () => {
   if (error) return <p className="status-text error">{error}</p>;
   if (!news.length) return <p className="status-text">কোনও খবর নেই</p>;
 
-  // ✅ Group by normalized category
+  // ✅ Group by category
   const groupedNews = news.reduce((acc, item) => {
     const category = item.category || "আরও";
     if (!acc[category]) acc[category] = [];
