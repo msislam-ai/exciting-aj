@@ -20,13 +20,12 @@ const CategoryPage = () => {
       try {
         setLoading(true);
 
-        // Fetch paginated news from backend for this category
+        // ✅ Fetch news for category
         const res = await axios.get(
-          `/api/news/category/${encodeURIComponent(categoryName)}?page=${currentPage}&limit=${pageSize * 5}`
-        ); 
-        // Fetch more items to allow pagination; backend should return all data or paginated
+          `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(categoryName)}`
+        );
 
-        const allNews = res.data.data || [];
+        const allNews = Array.isArray(res.data) ? res.data : [];
 
         // Sort newest first
         const sortedNews = allNews.sort(
@@ -59,7 +58,7 @@ const CategoryPage = () => {
   if (news.length === 0) return <p className="status-text">কোনও খবর নেই</p>;
 
   const featured = news[0];
-  const smallNews = news.slice(1, 6);
+  const smallNews = news.slice(1);
 
   return (
     <section className="category-page">
