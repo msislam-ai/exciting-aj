@@ -1,51 +1,46 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useSearchParams } from "react-router-dom";
-import { fetchAllNews } from "./newsApi";
+import axios from "axios";
 import "./news.css";
+
+const pageSize = 6; // 1 featured + 5 small
 
 const CategoryPage = () => {
   const { categoryName } = useParams();
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [totalPages, setTotalPages] = useState(1);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = parseInt(searchParams.get("page")) || 1;
-  const pageSize = 6; // 1 featured + 5 smaller news per page
 
   useEffect(() => {
     const loadNews = async () => {
       try {
         setLoading(true);
 
-        const res = await fetchAllNews(1, 200); // fetch enough articles
-        const allNews = res.data || [];
+        // Fetch paginated news from backend for this category
+        const res = await axios.get(
+          `/api/news/category/${encodeURIComponent(categoryName)}?page=${currentPage}&limit=${pageSize * 5}`
+        ); 
+        // Fetch more items to allow pagination; backend should return all data or paginated
 
-        const cleaned = allNews.map((item) => ({
-          ...item,
-          category: (item.category || "আরও").trim(),
-          categoryLower: (item.category || "আরও").trim().toLowerCase(),
-        }));
+        const allNews = res.data.data || [];
 
-        // Filter by category
-        let filteredNews =
-          categoryName === "সর্বশেষ"
-            ? cleaned.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate))
-            : cleaned.filter(
-                (item) =>
-                  item.categoryLower === categoryName.trim().toLowerCase()
-              );
+        // Sort newest first
+        const sortedNews = allNews.sort(
+          (a, b) => new Date(b.pubDate) - new Date(a.pubDate)
+        );
 
-        // Total pages
-        setTotalPages(Math.ceil(filteredNews.length / pageSize));
-
-        // Slice for pagination
+        // Slice for current page
         const startIndex = (currentPage - 1) * pageSize;
-        const pagedNews = filteredNews.slice(startIndex, startIndex + pageSize);
+        const pagedNews = sortedNews.slice(startIndex, startIndex + pageSize);
 
         setNews(pagedNews);
+        setTotalPages(Math.ceil(allNews.length / pageSize));
       } catch (err) {
+        console.log(err);
         setError(err.message || "Failed to fetch news");
       } finally {
         setLoading(false);
@@ -55,17 +50,19 @@ const CategoryPage = () => {
     loadNews();
   }, [categoryName, currentPage]);
 
-  if (loading) return <p className="status-text">Loading...</p>;
-  if (error) return <p className="status-text error">{error}</p>;
-  if (news.length === 0) return <p className="status-text">কোনও খবর নেই</p>;
-
-  // ===== Pagination Handlers =====
   const goToPage = (page) => {
     setSearchParams({ page });
   };
 
+  if (loading) return <p className="status-text">Loading news...</p>;
+  if (error) return <p className="status-text error">{error}</p>;
+  if (news.length === 0) return <p className="status-text">কোনও খবর নেই</p>;
+
+  const featured = news[0];
+  const smallNews = news.slice(1, 6);
+
   return (
-    <section className="news">
+    <section className="category-page">
       <div className="category-header">
         <h2 className="section-title">{categoryName}</h2>
         <Link to="/">
@@ -73,23 +70,23 @@ const CategoryPage = () => {
         </Link>
       </div>
 
-      {/* ===== FEATURED ===== */}
-      {news[0] && (
+      {/* Featured */}
+      {featured && (
         <div className="featured-news">
-          <img src={news[0].image || "/placeholder.jpg"} alt={news[0].title} />
+          <img src={featured.image || "/placeholder.jpg"} alt={featured.title} />
           <div className="featured-content">
-            <span className="category">{news[0].category}</span>
-            <Link to={`/article/${news[0]._id}`}>
-              <h3>{news[0].title}</h3>
-              <p>{news[0].shortDescription}</p>
+            <span className="category">{featured.category}</span>
+            <Link to={`/article/${featured._id}`}>
+              <h3>{featured.title}</h3>
+              <p>{featured.shortDescription}</p>
             </Link>
           </div>
         </div>
       )}
 
-      {/* ===== 5 SMALL NEWS ===== */}
+      {/* Small News */}
       <div className="news-grid">
-        {news.slice(1).map((item) => (
+        {smallNews.map((item) => (
           <Link key={item._id} to={`/article/${item._id}`} className="news-card">
             <img src={item.image || "/placeholder.jpg"} alt={item.title} />
             <div className="news-content">
@@ -101,7 +98,7 @@ const CategoryPage = () => {
         ))}
       </div>
 
-      {/* ===== PAGINATION ===== */}
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination">
           {Array.from({ length: totalPages }, (_, i) => (
