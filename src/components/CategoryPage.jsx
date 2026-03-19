@@ -8,30 +8,27 @@ const CategoryPage = () => {
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const loadNews = async () => {
+      setLoading(true);
       try {
-        const data = await fetchAllNews();
+        const res = await fetchAllNews(page, 50); // fetch 50 per page
 
-        // ✅ Normalize category names and assign fallback for empty/null
-        const cleaned = data.map((item) => ({
+        if (!res || !res.data) throw new Error("No news data");
+
+        // Normalize category names
+        const cleaned = res.data.map((item) => ({
           ...item,
           category: (item.category || "আরও").trim(),
         }));
 
-        // Debug: check what categories exist in API
-        console.log("Route category:", categoryName);
-        console.log("Available categories in API:", [
-          ...new Set(cleaned.map((n) => n.category)),
-        ]);
-
-        // ✅ Filter by category
+        // Filter by category
         const filteredNews =
           categoryName === "সর্বশেষ"
             ? cleaned
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                .slice(0, 10) // latest 10
             : cleaned.filter(
                 (item) =>
                   item.category.trim().toLowerCase() ===
@@ -39,6 +36,7 @@ const CategoryPage = () => {
               );
 
         setNews(filteredNews);
+        setTotalPages(res.totalPages || 1);
       } catch (err) {
         setError(err.message || "Failed to fetch news");
       } finally {
@@ -47,13 +45,14 @@ const CategoryPage = () => {
     };
 
     loadNews();
-  }, [categoryName]);
+  }, [categoryName, page]);
+
+  if (loading) return <p className="status-text">Loading news...</p>;
   if (error) return <p className="status-text error">{error}</p>;
   if (news.length === 0) return <p className="status-text">কোনও খবর নেই</p>;
 
   return (
     <section className="news">
-      {/* ===== Category Header ===== */}
       <div className="category-header">
         <h2 className="section-title">{categoryName}</h2>
         <Link to="/">
@@ -61,7 +60,6 @@ const CategoryPage = () => {
         </Link>
       </div>
 
-      {/* ===== Featured News ===== */}
       {news[0] && (
         <div className="featured-news">
           <img src={news[0].image || "/placeholder.jpg"} alt={news[0].title} />
@@ -75,14 +73,9 @@ const CategoryPage = () => {
         </div>
       )}
 
-      {/* ===== Small News Cards Grid ===== */}
       <div className="news-grid">
         {news.slice(1).map((item) => (
-          <Link
-            key={item._id}
-            to={`/article/${item._id}`}
-            className="news-card"
-          >
+          <Link key={item._id} to={`/article/${item._id}`} className="news-card">
             <img src={item.image || "/placeholder.jpg"} alt={item.title} />
             <div className="news-content">
               <span className="category">{item.category}</span>
@@ -91,6 +84,19 @@ const CategoryPage = () => {
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* ===== Pagination Buttons ===== */}
+      <div className="pagination">
+        {page > 1 && (
+          <button onClick={() => setPage(page - 1)}>← Previous</button>
+        )}
+        {page < totalPages && (
+          <button onClick={() => setPage(page + 1)}>Next →</button>
+        )}
+        <span>
+          Page {page} of {totalPages}
+        </span>
       </div>
     </section>
   );
