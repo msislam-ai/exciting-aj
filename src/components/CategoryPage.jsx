@@ -4,7 +4,7 @@ import { useParams, Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import "./news.css";
 
-const pageSize = 20; // 20 news per page
+const pageSize = 20; // 20 news per page, no featured
 
 // Map backend categories to user-friendly names
 const CATEGORY_MAP = {
@@ -14,6 +14,7 @@ const CATEGORY_MAP = {
   sports: "খেলা",
   international: "আন্তর্জাতিক",
   others: "আরও",
+  latest: "সর্বশেষ", // Special key for today's news
 };
 
 const CategoryPage = () => {
@@ -30,12 +31,31 @@ const CategoryPage = () => {
     const loadNews = async () => {
       setLoading(true);
       try {
-        // Fetch only this category
-        const res = await axios.get(
-          `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(categoryName)}`
-        );
+        let allNews = [];
 
-        const allNews = Array.isArray(res.data) ? res.data : [];
+        if (categoryName.toLowerCase() === "সর্বশেষ") {
+          // Fetch all news and filter by today's date
+          const res = await axios.get(
+            `https://news-project-06582-2.onrender.com/news/all`
+          );
+          const data = Array.isArray(res.data) ? res.data : [];
+
+          const today = new Date();
+          allNews = data.filter((item) => {
+            const pubDate = new Date(item.pubDate);
+            return (
+              pubDate.getFullYear() === today.getFullYear() &&
+              pubDate.getMonth() === today.getMonth() &&
+              pubDate.getDate() === today.getDate()
+            );
+          });
+        } else {
+          // Fetch only this category
+          const res = await axios.get(
+            `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(categoryName)}`
+          );
+          allNews = Array.isArray(res.data) ? res.data : [];
+        }
 
         // Sort newest first
         allNews.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
