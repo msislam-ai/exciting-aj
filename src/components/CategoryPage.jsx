@@ -4,7 +4,17 @@ import { useParams, Link, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import "./news.css";
 
-const pageSize = 20; // 20 news per page, no featured
+const pageSize = 20; // 20 news per page
+
+// Map backend categories to user-friendly names
+const CATEGORY_MAP = {
+  general: "জাতীয়",
+  national: "জাতীয়",
+  politics: "রাজনীতি",
+  sports: "খেলা",
+  international: "আন্তর্জাতিক",
+  others: "আরও",
+};
 
 const CategoryPage = () => {
   const { categoryName } = useParams();
@@ -62,7 +72,9 @@ const CategoryPage = () => {
   return (
     <section className="category-page">
       <div className="category-header">
-        <h2 className="section-title">{categoryName}</h2>
+        <h2 className="section-title">
+          {CATEGORY_MAP[categoryName.toLowerCase()] || categoryName}
+        </h2>
         <Link to="/">
           <button className="see-more">হোম →</button>
         </Link>
@@ -73,7 +85,9 @@ const CategoryPage = () => {
           <Link key={item._id} to={`/article/${item._id}`} className="news-card">
             <img src={item.image || "/placeholder.jpg"} alt={item.title} />
             <div className="news-content">
-              <span className="category">{item.category}</span>
+              <span className="category">
+                {CATEGORY_MAP[item.category?.toLowerCase()] || item.category || "আরও"}
+              </span>
               <h4>{item.title}</h4>
               <p>{item.shortDescription}</p>
             </div>
