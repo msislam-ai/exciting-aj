@@ -1,43 +1,46 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./category.css";
-import { fetchAllNews } from "./newsApi";
+import axios from "axios";
 
 const CategorySection = () => {
   const [categoryData, setCategoryData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fetch categories first
   useEffect(() => {
-    const loadNews = async () => {
+    const loadCategories = async () => {
       try {
-        // Fetch enough news for all categories
-        const res = await fetchAllNews(1, 1000); // page 1, 1000 articles
-        const allNews = res.data || [];
+        const catRes = await axios.get("/api/news/categories");
+        const categories = catRes.data || [];
 
-        // Group news by category (trimmed)
         const grouped = {};
-        allNews.forEach((article) => {
-          const cat = (article.category || "আরও").trim();
-          if (!grouped[cat]) grouped[cat] = [];
-          grouped[cat].push(article);
-        });
+        // Fetch 6 news per category (1 featured + 5 small)
+        await Promise.all(
+          categories.map(async (cat) => {
+            const newsRes = await axios.get(
+              `/api/news/category/${encodeURIComponent(cat)}?page=1&limit=6`
+            );
+            grouped[cat] = newsRes.data.data || [];
+          })
+        );
 
         setCategoryData(grouped);
       } catch (err) {
-        setError(err.message || "Failed to fetch news");
+        console.log(err);
+        setError(err.message || "Failed to fetch categories");
       } finally {
         setLoading(false);
       }
     };
 
-    loadNews();
+    loadCategories();
   }, []);
 
   if (loading) return <p className="status-text">Loading categories...</p>;
   if (error) return <p className="status-text error">{error}</p>;
 
-  // Get all category names dynamically
   const categories = Object.keys(categoryData);
 
   return (
@@ -46,12 +49,10 @@ const CategorySection = () => {
 
       {categories.map((cat) => {
         const newsItems = categoryData[cat];
-
         if (!newsItems || newsItems.length === 0) return null;
 
-        // 1 featured + next 5 smaller
-        const featured = newsItems[0];
-        const smallNews = newsItems.slice(1, 6);
+        const featured = newsItems[0]; // first as featured
+        const smallNews = newsItems.slice(1, 6); // next 5 as small
 
         return (
           <div key={cat} className="category-block">
@@ -66,7 +67,10 @@ const CategorySection = () => {
             {/* Featured News */}
             {featured && (
               <div className="featured-news">
-                <img src={featured.image || "/placeholder.jpg"} alt={featured.title} />
+                <img
+                  src={featured.image || "/placeholder.jpg"}
+                  alt={featured.title}
+                />
                 <div className="featured-content">
                   <span className="category">{featured.category}</span>
                   <Link to={`/article/${featured._id}`}>
@@ -77,7 +81,7 @@ const CategorySection = () => {
               </div>
             )}
 
-            {/* 5 Small News Cards */}
+            {/* Small News Grid */}
             <div className="news-grid">
               {smallNews.map((item) => (
                 <Link key={item._id} to={`/article/${item._id}`} className="news-card">
