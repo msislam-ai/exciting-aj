@@ -1,44 +1,55 @@
 // src/components/Herosection.jsx
 import { useEffect, useState } from "react";
 import "./hero.css";
-import { fetchAllNews } from "./newsApi"; // connect to your API
+import axios from "axios";
 
 const Herosection = () => {
   const [news, setNews] = useState([]);
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
-  /* ================= NEWS FETCH ================= */
-  useEffect(() => {
-    const fetchNewsData = async () => {
-      try {
-        // Fetch first 5 news articles
-        const data = await fetchAllNews(1, 5);
-        setNews(data.data || []); // ✅ ensure it's an array
-      } catch (err) {
-        console.error("Failed to fetch news:", err);
-        setError("Failed to fetch news");
-      }
-    };
+  // Refresh interval: 2 hours = 7200000 ms
+  const REFRESH_INTERVAL = 7200000;
 
-    fetchNewsData();
-  }, []);
+  /* ================= NEWS FETCH ================= */
+  const fetchNewsData = async () => {
+    try {
+      const res = await axios.get(
+        "https://news-project-06582-2.onrender.com/news/all?page=1&limit=5&_=" + Date.now()
+      );
+      const articles = Array.isArray(res.data.data) ? res.data.data : res.data || [];
+      setNews(articles);
+    } catch (err) {
+      console.error("Failed to fetch news:", err);
+      setError("Failed to fetch news");
+    }
+  };
 
   /* ================= WEATHER FETCH ================= */
-  useEffect(() => {
-    const fetchWeather = async () => {
-      try {
-        const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45`
-        );
-        const data = await res.json();
-        if (data.cod === 200) setWeather(data);
-      } catch {
-        console.log("Weather fetch failed");
-      }
-    };
+  const fetchWeather = async () => {
+    try {
+      const res = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45`
+      );
+      const data = await res.json();
+      if (data.cod === 200) setWeather(data);
+    } catch {
+      console.log("Weather fetch failed");
+    }
+  };
 
+  /* ================= USE EFFECT ================= */
+  useEffect(() => {
+    fetchNewsData();
     fetchWeather();
+
+    // Set interval to refresh news & weather
+    const interval = setInterval(() => {
+      fetchNewsData();
+      fetchWeather();
+    }, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
   }, []);
 
   /* ================= LOADING & ERROR ================= */
