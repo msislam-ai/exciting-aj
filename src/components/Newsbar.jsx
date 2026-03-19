@@ -65,7 +65,7 @@ const Newsbar = () => {
 
       {/* See More Button */}
       <div className="see-more-container">
-        <button className="see-more-btn" onClick={() => navigate("/all-news")}>
+        <button className="see-more-btn" onClick={() => navigate("/AllNewsPage")}>
           See More News →
         </button>
       </div>
