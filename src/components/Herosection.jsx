@@ -8,8 +8,8 @@ function Herosection() {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        const data = await fetchAllNews();
-        setNews(data);
+        const data = await fetchAllNews(1, 10); // fetch first page, 10 articles
+        setNews(data.data || []); // <-- use data.data
       } catch (err) {
         setError("Failed to fetch news");
       }
@@ -24,10 +24,12 @@ function Herosection() {
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 
+      {news.length === 0 && !error && <p>Loading latest news...</p>}
+
       {news.map((article) => (
-        <div key={article._id}>
+        <div key={article._id} style={{ marginBottom: "20px" }}>
           <h2>
-            <a href="#">{article.title}</a>
+            <a href={`/article/${article._id}`}>{article.title}</a>
           </h2>
 
           {article.image && (
