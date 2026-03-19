@@ -9,9 +9,6 @@ const CategorySection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [page, setPage] = useState(1); // ✅ pagination
-  const [totalPages, setTotalPages] = useState(1);
-
   const categories = [
     "সর্বশেষ",
     "জাতীয়",
@@ -24,11 +21,9 @@ const CategorySection = () => {
   useEffect(() => {
     const loadNews = async () => {
       try {
-        // ✅ fetch paginated data
-        const res = await fetchAllNews(page, 100);
-
-        const allNews = res.data || []; // 🔥 IMPORTANT FIX
-        setTotalPages(res.totalPages || 1);
+        // ✅ Fetch first page with enough articles (or increase limit)
+        const res = await fetchAllNews(1, 1000); // page 1, 1000 articles
+        const allNews = res.data || []; // <-- use res.data, not res itself
 
         // ===== GROUP NEWS BY CATEGORY =====
         const grouped = {};
@@ -47,9 +42,8 @@ const CategorySection = () => {
     };
 
     loadNews();
-  }, [page]); // ✅ refetch when page changes
+  }, []);
 
-  // ===== COUNT FUNCTION =====
   const getCount = (cat) => {
     if (cat === "সর্বশেষ") {
       return Object.values(categoryData).flat().length;
@@ -64,7 +58,6 @@ const CategorySection = () => {
     <section className="category-section">
       <h1 className="category-title">ক্যাটাগরি সমূহ</h1>
 
-      {/* ===== CATEGORY GRID ===== */}
       <div className="category-grid">
         {categories.map((cat) => (
           <Link
@@ -75,29 +68,6 @@ const CategorySection = () => {
             <CategoryCard title={cat} count={getCount(cat)} />
           </Link>
         ))}
-      </div>
-
-      {/* ===== PAGINATION ===== */}
-      <div style={{ marginTop: "20px", textAlign: "center" }}>
-        <button
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-          style={{ marginRight: "10px" }}
-        >
-          ← Prev
-        </button>
-
-        <span>
-          Page {page} of {totalPages}
-        </span>
-
-        <button
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-          style={{ marginLeft: "10px" }}
-        >
-          Next →
-        </button>
       </div>
     </section>
   );
