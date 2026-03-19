@@ -1,28 +1,31 @@
-// src/components/ArticlePage.jsx
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { fetchAllNews } from "./newsApi"; // make sure this points to your API file
 
 const ArticlePage = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // get article ID from URL
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadArticle = async () => {
-      setLoading(true);
       try {
-        // Fetch only the article by ID
-        const res = await fetch(
-          `https://news-project-06582-2.onrender.com/news/${id}`
-        );
-        if (!res.ok) throw new Error("Article not found");
+        // ✅ Fetch first page (you can increase limit if needed)
+        const res = await fetchAllNews(1, 1000); // page 1, 1000 articles
+        const allNews = res.data || []; // use res.data, not res itself
 
-        const data = await res.json();
-        setArticle(data);
+        // Find the article by id or _id
+        const selected = allNews.find(
+          (item) => item.id?.toString() === id || item._id?.toString() === id
+        );
+
+        if (!selected) throw new Error("Article not found");
+
+        setArticle(selected);
       } catch (err) {
         console.error(err);
-        setError(err.message || "Failed to load article");
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -31,116 +34,53 @@ const ArticlePage = () => {
     loadArticle();
   }, [id]);
 
-  if (loading)
-    return (
-      <div style={styles.loadingWrapper}>
-        <div style={styles.spinner}></div>
-        <p>Loading article...</p>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div style={styles.errorWrapper}>
-        <p>{error}</p>
-        <Link to="/" style={styles.backBtn}>
-          ← Back to Home
-        </Link>
-      </div>
-    );
-
-  if (!article) return null;
+  if (loading) return <p style={{ padding: "20px" }}>Loading article...</p>;
+  if (error) return <p style={{ padding: "20px", color: "red" }}>{error}</p>;
+  if (!article) return <p style={{ padding: "20px" }}>Article not found!</p>;
 
   return (
-    <section style={styles.container}>
-      <Link to="/" style={styles.backBtn}>
+    <section style={{ padding: "50px 8%", fontFamily: "Segoe UI, sans-serif" }}>
+      {/* Back link */}
+      <Link to="/" style={{ display: "inline-block", marginBottom: "20px" }}>
         ← Back to Home
       </Link>
 
-      <h1 style={styles.title}>{article.title}</h1>
-      <span style={styles.category}>{article.category || "আরও"}</span>
+      {/* Title */}
+      <h1 style={{ marginBottom: "20px", fontSize: "32px" }}>{article.title}</h1>
 
-      {article.image && <img src={article.image} alt={article.title} style={styles.image} />}
+      {/* Category */}
+      <span style={{ color: "#e63946", fontWeight: "600", fontSize: "14px" }}>
+        {article.category || "আরও"}
+      </span>
 
-      <div style={styles.content}>
-        {article.content
-          ? article.content.split("\n").map((line, index) => (
-              <p key={index} style={{ marginBottom: "16px" }}>
-                {line}
-              </p>
-            ))
-          : <p>{article.shortDescription || "No content available."}</p>}
+      {/* Image */}
+      {article.image && (
+        <img
+          src={article.image}
+          alt={article.title}
+          style={{
+            width: "100%",
+            margin: "20px 0",
+            borderRadius: "10px",
+            objectFit: "cover",
+          }}
+        />
+      )}
+
+      {/* Full Content */}
+      <div style={{ fontSize: "18px", lineHeight: "1.8", marginBottom: "20px" }}>
+        {article.content ? (
+          article.content.split("\n").map((line, index) => (
+            <p key={index} style={{ marginBottom: "16px" }}>
+              {line}
+            </p>
+          ))
+        ) : (
+          <p>{article.shortDescription || "No content available."}</p>
+        )}
       </div>
     </section>
   );
 };
-
-const styles = {
-  container: {
-    padding: "50px 8%",
-    fontFamily: "Segoe UI, sans-serif",
-    maxWidth: "900px",
-    margin: "0 auto",
-  },
-  backBtn: {
-    display: "inline-block",
-    marginBottom: "20px",
-    textDecoration: "none",
-    color: "#e63946",
-    fontWeight: 500,
-  },
-  title: {
-    marginBottom: "10px",
-    fontSize: "2rem",
-    fontWeight: 700,
-  },
-  category: {
-    color: "#e63946",
-    fontWeight: 600,
-    fontSize: "0.95rem",
-  },
-  image: {
-    width: "100%",
-    margin: "20px 0",
-    borderRadius: "10px",
-    objectFit: "cover",
-  },
-  content: {
-    fontSize: "1.1rem",
-    lineHeight: 1.8,
-  },
-  loadingWrapper: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "60vh",
-    gap: "15px",
-    fontSize: "1.1rem",
-    color: "#555",
-  },
-  spinner: {
-    border: "6px solid #f3f3f3",
-    borderTop: "6px solid #e63946",
-    borderRadius: "50%",
-    width: "50px",
-    height: "50px",
-    animation: "spin 1s linear infinite",
-  },
-  errorWrapper: {
-    padding: "50px 8%",
-    textAlign: "center",
-    color: "red",
-  },
-};
-
-// Add spinner animation keyframes
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-`, styleSheet.cssRules.length);
 
 export default ArticlePage;
