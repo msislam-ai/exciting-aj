@@ -188,14 +188,7 @@ const styles = {
     fontSize: "1.1rem",
     color: "#555",
   },
-  spinner: {
-    border: "6px solid #f3f3f3",
-    borderTop: "6px solid #e63946",
-    borderRadius: "50%",
-    width: "50px",
-    height: "50px",
-    animation: "spin 1s linear infinite",
-  },
+
   errorWrapper: {
     padding: "50px 8%",
     textAlign: "center",
@@ -204,12 +197,6 @@ const styles = {
 };
 
 // Add spinner animation keyframes
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-`, styleSheet.cssRules.length);
+
 
 export default CategoryPage;
