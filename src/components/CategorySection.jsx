@@ -1,15 +1,27 @@
+// src/components/CategorySection.jsx
 import { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
 import "./category.css";
 import { Link } from "react-router-dom";
-import { fetchAllNews } from "./newsApi";
+import axios from "axios";
+
+// Map backend categories to user-friendly Bangla names
+const CATEGORY_MAP = {
+  general: "জাতীয়",
+  national: "জাতীয়",
+  politics: "রাজনীতি",
+  sports: "খেলা",
+  international: "আন্তর্জাতিক",
+  others: "আরও",
+  latest: "সর্বশেষ",
+};
 
 const CategorySection = () => {
   const [categoryData, setCategoryData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Fixed categories array
+  // Fixed categories to display
   const categories = [
     "সর্বশেষ",
     "জাতীয়",
@@ -21,22 +33,39 @@ const CategorySection = () => {
 
   useEffect(() => {
     const loadNews = async () => {
+      setLoading(true);
       try {
-        const res = await fetchAllNews();
+        // Fetch all news locally
+        const res = await axios.get("https://news-project-06582-2.onrender.com/news/all");
+        const data = Array.isArray(res.data) ? res.data : [];
 
-        // ✅ Ensure data is an array to prevent 'forEach' errors
-        const data = Array.isArray(res) ? res : res.data || [];
-
-        // ===== GROUP NEWS BY CATEGORY (trimmed to avoid mismatch) =====
+        // Group news by category
         const grouped = {};
+        const today = new Date();
+
         data.forEach((article) => {
-          const cat = (article.category || "আরও").trim(); // trim spaces
-          if (!grouped[cat]) grouped[cat] = [];
-          grouped[cat].push(article);
+          // trim category and map to Bangla names
+          const cat = (article.category || "others").trim().toLowerCase();
+          const mappedCat = CATEGORY_MAP[cat] || "আরও";
+
+          if (!grouped[mappedCat]) grouped[mappedCat] = [];
+          grouped[mappedCat].push(article);
+
+          // Also handle "সর্বশেষ" for today
+          const pubDate = new Date(article.pubDate);
+          if (
+            pubDate.getFullYear() === today.getFullYear() &&
+            pubDate.getMonth() === today.getMonth() &&
+            pubDate.getDate() === today.getDate()
+          ) {
+            if (!grouped["সর্বশেষ"]) grouped["সর্বশেষ"] = [];
+            grouped["সর্বশেষ"].push(article);
+          }
         });
 
         setCategoryData(grouped);
       } catch (err) {
+        console.error(err);
         setError(err.message || "Failed to fetch categories");
       } finally {
         setLoading(false);
@@ -46,14 +75,8 @@ const CategorySection = () => {
     loadNews();
   }, []);
 
-  // ===== COUNT FUNCTION =====
-  const getCount = (cat) => {
-    if (cat === "সর্বশেষ") {
-      // sum of all categories
-      return Object.values(categoryData).flat().length;
-    }
-    return categoryData[cat]?.length || 0;
-  };
+  // Count function for each category
+  const getCount = (cat) => categoryData[cat]?.length || 0;
 
   if (loading) return <p className="status-text">Loading categories...</p>;
   if (error) return <p className="status-text error">{error}</p>;
