@@ -22,7 +22,6 @@ const AllNewsPage = () => {
 
       const data = await res.json();
 
-      // backend should return { data: [...], page: n, totalPages: n }
       setNews(data.data || []);
       setPage(data.page || pageNumber);
       setTotalPages(data.totalPages || 1);
@@ -53,6 +52,9 @@ const AllNewsPage = () => {
               <img src={article.image || "/placeholder.jpg"} alt={article.title} />
             </div>
             <div className="news-content">
+              {/* Category */}
+              <span className="news-category">{article.category || "আরও"}</span>
+
               <Link to={`/article/${article.id || article._id}`}>
                 <h3>{article.title}</h3>
               </Link>
