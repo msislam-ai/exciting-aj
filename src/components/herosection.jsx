@@ -9,7 +9,7 @@ const Herosection = () => {
   const [error, setError] = useState(null);
 
   // Refresh interval: 2 hours = 7200000 ms
-  const REFRESH_INTERVAL = 7200000;
+  const REFRESH_INTERVAL = 2000;
 
   /* ================= NEWS FETCH ================= */
   const fetchNewsData = async () => {
