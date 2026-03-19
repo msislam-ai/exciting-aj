@@ -1,42 +1,40 @@
-// src/api/newsApi.js
-
 const BASE_URL = "https://news-project-06582-2.onrender.com";
 
 /* =========================
-   Fetch All News
+   Fetch All News (paginated)
 ========================= */
-export const fetchAllNews = async () => {
+export const fetchAllNews = async (page = 1, limit = 50) => {
   try {
-    const res = await fetch(`${BASE_URL}/news/all`);
+    const res = await fetch(`${BASE_URL}/news/all?page=${page}&limit=${limit}`);
 
     if (!res.ok) {
       throw new Error("Failed to fetch news");
     }
 
-    return await res.json();
+    return await res.json(); // returns { page, limit, total, totalPages, data }
   } catch (error) {
     console.error("❌ fetchAllNews:", error.message);
-    return [];
+    return { page, limit, total: 0, totalPages: 0, data: [] };
   }
 };
 
 /* =========================
-   Fetch News By Category
+   Fetch News By Category (paginated)
 ========================= */
-export const fetchNewsByCategory = async (category) => {
+export const fetchNewsByCategory = async (category, page = 1, limit = 50) => {
   try {
     const res = await fetch(
-      `${BASE_URL}/news/category/${encodeURIComponent(category)}`
+      `${BASE_URL}/news/category/${encodeURIComponent(category)}?page=${page}&limit=${limit}`
     );
 
     if (!res.ok) {
       throw new Error("Failed to fetch category news");
     }
 
-    return await res.json();
+    return await res.json(); // returns { page, limit, total, totalPages, data }
   } catch (error) {
     console.error("❌ fetchNewsByCategory:", error.message);
-    return [];
+    return { page, limit, total: 0, totalPages: 0, data: [] };
   }
 };
 
