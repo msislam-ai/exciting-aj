@@ -10,7 +10,7 @@ const Newsbar = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ✅ Normalize categories (optional if needed)
+  // Normalize categories
   const normalizeCategory = (cat) => {
     const c = (cat || "").toLowerCase().trim();
     if (c.includes("national") || c.includes("জাতীয়")) return "জাতীয়";
@@ -23,21 +23,15 @@ const Newsbar = () => {
   const loadNews = async () => {
     setLoading(true);
     try {
-      // ✅ Fetch all news (or high limit) to get latest ones
+      // ✅ Fetch only latest 5 news directly from server
       const res = await axios.get(
-        `https://news-project-06582-2.onrender.com/news/all?page=1&limit=1000&_=${Date.now()}`
+        `https://news-project-06582-2.onrender.com/news/all?page=1&limit=5&sort=latest&_=${Date.now()}`
       );
 
-      let articles = Array.isArray(res.data.data) ? res.data.data : res.data || [];
-
-      // ✅ Sort by latest pubDate
-      articles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-      // ✅ Take last 5 articles (latest)
-      const latestArticles = articles.slice(-5).reverse(); // reverse to show newest first
+      const articles = Array.isArray(res.data.data) ? res.data.data : [];
 
       // ✅ Normalize categories
-      const cleaned = latestArticles.map((item) => ({
+      const cleaned = articles.map((item) => ({
         ...item,
         category: normalizeCategory(item.category),
       }));
@@ -54,8 +48,8 @@ const Newsbar = () => {
   useEffect(() => {
     loadNews();
 
-    // ✅ Auto-refresh every 30s
-    const interval = setInterval(() => loadNews(), 7200000);
+    // Auto-refresh every 3 hours
+    const interval = setInterval(loadNews, 3 * 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -78,7 +72,6 @@ const Newsbar = () => {
               <img src={article.image || "/placeholder.jpg"} alt={article.title} />
               <div className="overlay" />
             </div>
-
             <div className="news-content">
               <Link to={`/article/${article._id || article.id}`}>
                 <h3>{article.title}</h3>
@@ -89,7 +82,6 @@ const Newsbar = () => {
         ))}
       </div>
 
-      {/* See More Button */}
       <div className="see-more-container">
         <button className="see-more-btn" onClick={() => navigate("/AllNewsPage")}>
           See More News →
