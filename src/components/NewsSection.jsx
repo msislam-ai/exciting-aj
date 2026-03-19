@@ -58,7 +58,7 @@ const NewsSection = () => {
 
     const interval = setInterval(() => {
       loadNews();
-    }, 30000); // refresh every 30s
+    }, 7200000); // refresh every 30s
 
     return () => clearInterval(interval);
   }, []);
