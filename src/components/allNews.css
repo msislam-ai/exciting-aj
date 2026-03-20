@@ -1,5 +1,15 @@
 /* allNews.css */
+.published-time {
+  font-size: 0.85rem;
+  color: #555;
+  margin-top: 4px;
+}
 
+.updated-time {
+  font-size: 0.75rem;
+  color: #888;
+  margin-top: 2px;
+}
 /* Wrapper */
 .all-news-wrapper {
   max-width: 1200px;
