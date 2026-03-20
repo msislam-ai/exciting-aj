@@ -22,12 +22,7 @@ const AllNewsPage = () => {
 
       const data = await res.json();
 
-      // Sort by updatedAt (latest first)
-      const sortedNews = (data.data || []).sort(
-        (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-      );
-
-      setNews(sortedNews);
+      setNews(data.data || []);
       setPage(data.page || pageNumber);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -41,13 +36,6 @@ const AllNewsPage = () => {
   useEffect(() => {
     fetchNews(page);
   }, [page]);
-
-  // Helper function to format updatedAt
-  const formatTime = (timestamp) => {
-    if (!timestamp) return "";
-    const date = new Date(timestamp);
-    return date.toLocaleString("bn-BD", { hour12: true }); // Bangla locale optional
-  };
 
   if (loading) return <h2 className="loading">Loading news...</h2>;
   if (error) return <p className="error">{error}</p>;
@@ -70,15 +58,7 @@ const AllNewsPage = () => {
               <Link to={`/article/${article.id || article._id}`}>
                 <h3>{article.title}</h3>
               </Link>
-
               <p>{article.shortDescription}</p>
-
-              {/* Updated Time */}
-              {article.updatedAt && (
-                <p className="updated-time">
-                  আপডেট হয়েছে: {formatTime(article.updatedAt)}
-                </p>
-              )}
             </div>
           </div>
         ))}
