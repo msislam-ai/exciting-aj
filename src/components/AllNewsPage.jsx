@@ -9,16 +9,17 @@ const AllNewsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const LIMIT = 100; // 100 news per page
+  const LIMIT = 100; // Number of news per page
 
-  // ✅ Fetch news function
+  // Fetch news function
   const fetchNews = async (pageNumber = 1) => {
     setLoading(true);
     setError(null);
 
     try {
+      // Add timestamp to prevent caching
       const res = await fetch(
-        `https://news-project-06582-2.onrender.com/news/all?page=${pageNumber}&limit=${LIMIT}`
+        `https://news-project-06582-2.onrender.com/news/all?page=${pageNumber}&limit=${LIMIT}&_=${Date.now()}`
       );
       if (!res.ok) throw new Error("Failed to fetch news");
 
@@ -29,7 +30,16 @@ const AllNewsPage = () => {
         (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
       );
 
-      setNews(sortedNews);
+      // Merge with existing news and remove duplicates
+      setNews((prevNews) => {
+        const merged = [...sortedNews, ...prevNews];
+        const unique = merged.filter(
+          (item, index, self) =>
+            index === self.findIndex((t) => t._id === item._id)
+        );
+        return unique;
+      });
+
       setPage(data.page || pageNumber);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -40,20 +50,20 @@ const AllNewsPage = () => {
     }
   };
 
-  // ✅ Use effect to fetch news initially
+  // Fetch first page initially
   useEffect(() => {
-    fetchNews(1); // Always fetch first page initially
+    fetchNews(1);
   }, []);
 
-  // ✅ Optional: Auto-refresh every 60 seconds
+  // Auto-refresh latest news every 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchNews(page); // Refetch current page automatically
-    }, 60000); // 60000 ms = 60 seconds
+      fetchNews(1); // Always fetch page 1 for newest news
+    }, 60000); // 60 seconds
     return () => clearInterval(interval);
-  }, [page]);
+  }, []);
 
-  // Helper function to format updatedAt
+  // Format updatedAt timestamp
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
@@ -80,8 +90,6 @@ const AllNewsPage = () => {
               <Link to={`/article/${article.id || article._id}`}>
                 <h3>{article.title}</h3>
               </Link>
-
-              <p>{article.description || article.shortDescription}</p>
 
               {article.updatedAt && (
                 <p className="updated-time">
@@ -118,7 +126,7 @@ const AllNewsPage = () => {
             fetchNews(next);
           }}
         >
-          Next → 
+          Next →
         </button>
       </div>
     </div>
