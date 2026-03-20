@@ -9,21 +9,28 @@ const AllNewsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const LIMIT = 100;
+  const LIMIT = 100; // 100 news per page
 
+  // Fetch news function
   const fetchNews = async (pageNumber = 1) => {
     setLoading(true);
     setError(null);
+
     try {
       const res = await fetch(
         `https://news-project-06582-2.onrender.com/news/all?page=${pageNumber}&limit=${LIMIT}`
       );
+
       if (!res.ok) throw new Error("Failed to fetch news");
 
       const data = await res.json();
 
-      // Already sorted by pubDate in backend
-      setNews(data.data || []);
+      // Sort by pubDate descending just in case
+      const sortedNews = (data.data || []).sort(
+        (a, b) => new Date(b.pubDate) - new Date(a.pubDate)
+      );
+
+      setNews(sortedNews);
       setPage(data.page || pageNumber);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -34,18 +41,20 @@ const AllNewsPage = () => {
     }
   };
 
+  // Initial fetch
   useEffect(() => {
     fetchNews(1);
   }, []);
 
-  // Auto-refresh every hour (3600000 ms)
+  // Auto-refresh every 1 hour
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchNews(page);
-    }, 3600000);
+      fetchNews(page); // Refetch current page
+    }, 3600000); // 3600000 ms = 1 hour
     return () => clearInterval(interval);
   }, [page]);
 
+  // Helper to format date
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
@@ -62,18 +71,28 @@ const AllNewsPage = () => {
 
       <div className="news-container">
         {news.map((article) => (
-          <div key={article.id} className="news-card">
+          <div key={article._id || article.id} className="news-card">
             <div className="image-wrapper">
               <img src={article.image || "/placeholder.jpg"} alt={article.title} />
             </div>
             <div className="news-content">
               <span className="news-category">{article.category || "আরও"}</span>
-              <Link to={`/article/${article.id}`}>
+
+              <Link to={`/article/${article.id || article._id}`}>
                 <h3>{article.title}</h3>
               </Link>
+
+              {/* Published Date */}
               {article.pubDate && (
+                <p className="published-time">
+                  প্রকাশিত: {formatTime(article.pubDate)}
+                </p>
+              )}
+
+              {/* Updated Time */}
+              {article.updatedAt && (
                 <p className="updated-time">
-                  প্রকাশিত হয়েছে: {formatTime(article.pubDate)}
+                  আপডেট হয়েছে: {formatTime(article.updatedAt)}
                 </p>
               )}
             </div>
@@ -81,6 +100,7 @@ const AllNewsPage = () => {
         ))}
       </div>
 
+      {/* Pagination */}
       <div className="pagination">
         <button
           disabled={page === 1}
