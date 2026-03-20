@@ -9,28 +9,21 @@ const AllNewsPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const LIMIT = 100; // Number of news per page
+  const LIMIT = 100;
 
-  // Fetch news function
   const fetchNews = async (pageNumber = 1) => {
     setLoading(true);
     setError(null);
-
     try {
-      // Add timestamp to prevent caching
       const res = await fetch(
-        `https://news-project-06582-2.onrender.com/news/all?page=${pageNumber}&limit=${LIMIT}&_=${Date.now()}`
+        `https://news-project-06582-2.onrender.com/news/all?page=${pageNumber}&limit=${LIMIT}`
       );
       if (!res.ok) throw new Error("Failed to fetch news");
 
       const data = await res.json();
 
-      // Sort by updatedAt descending (newest first)
-      const sortedNews = (data.data || []).sort(
-        (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-      );
-
-      setNews(sortedNews);
+      // Already sorted by pubDate in backend
+      setNews(data.data || []);
       setPage(data.page || pageNumber);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -41,20 +34,18 @@ const AllNewsPage = () => {
     }
   };
 
-  // Fetch first page initially
   useEffect(() => {
     fetchNews(1);
   }, []);
 
-  // Auto-refresh every 1 hour (3600000 ms)
+  // Auto-refresh every hour (3600000 ms)
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchNews(1); // Refresh only the first page
-    }, 3600000); // 1 hour in milliseconds
+      fetchNews(page);
+    }, 3600000);
     return () => clearInterval(interval);
-  }, []);
+  }, [page]);
 
-  // Format updatedAt timestamp
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
@@ -71,20 +62,18 @@ const AllNewsPage = () => {
 
       <div className="news-container">
         {news.map((article) => (
-          <div key={article._id || article.id} className="news-card">
+          <div key={article.id} className="news-card">
             <div className="image-wrapper">
               <img src={article.image || "/placeholder.jpg"} alt={article.title} />
             </div>
             <div className="news-content">
               <span className="news-category">{article.category || "আরও"}</span>
-
-              <Link to={`/article/${article.id || article._id}`}>
+              <Link to={`/article/${article.id}`}>
                 <h3>{article.title}</h3>
               </Link>
-
-              {article.updatedAt && (
+              {article.pubDate && (
                 <p className="updated-time">
-                  আপডেট হয়েছে: {formatTime(article.updatedAt)}
+                  প্রকাশিত হয়েছে: {formatTime(article.pubDate)}
                 </p>
               )}
             </div>
@@ -92,7 +81,6 @@ const AllNewsPage = () => {
         ))}
       </div>
 
-      {/* Pagination */}
       <div className="pagination">
         <button
           disabled={page === 1}
