@@ -1,4 +1,3 @@
-// src/components/AllNewsPage.jsx
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "./allNews.css";
@@ -12,8 +11,11 @@ const AllNewsPage = () => {
 
   const LIMIT = 100; // 100 news per page
 
+  // ✅ Fetch news function
   const fetchNews = async (pageNumber = 1) => {
     setLoading(true);
+    setError(null);
+
     try {
       const res = await fetch(
         `https://news-project-06582-2.onrender.com/news/all?page=${pageNumber}&limit=${LIMIT}`
@@ -22,7 +24,7 @@ const AllNewsPage = () => {
 
       const data = await res.json();
 
-      // Sort by updatedAt (latest first)
+      // Sort by updatedAt descending
       const sortedNews = (data.data || []).sort(
         (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
       );
@@ -38,15 +40,24 @@ const AllNewsPage = () => {
     }
   };
 
+  // ✅ Use effect to fetch news initially
   useEffect(() => {
-    fetchNews(page);
+    fetchNews(1); // Always fetch first page initially
+  }, []);
+
+  // ✅ Optional: Auto-refresh every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchNews(page); // Refetch current page automatically
+    }, 60000); // 60000 ms = 60 seconds
+    return () => clearInterval(interval);
   }, [page]);
 
   // Helper function to format updatedAt
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
     const date = new Date(timestamp);
-    return date.toLocaleString("bn-BD", { hour12: true }); // Bangla locale optional
+    return date.toLocaleString("bn-BD", { hour12: true });
   };
 
   if (loading) return <h2 className="loading">Loading news...</h2>;
@@ -64,16 +75,14 @@ const AllNewsPage = () => {
               <img src={article.image || "/placeholder.jpg"} alt={article.title} />
             </div>
             <div className="news-content">
-              {/* Category */}
               <span className="news-category">{article.category || "আরও"}</span>
 
               <Link to={`/article/${article.id || article._id}`}>
                 <h3>{article.title}</h3>
               </Link>
 
-              <p>{article.shortDescription}</p>
+              <p>{article.description || article.shortDescription}</p>
 
-              {/* Updated Time */}
               {article.updatedAt && (
                 <p className="updated-time">
                   আপডেট হয়েছে: {formatTime(article.updatedAt)}
@@ -88,7 +97,11 @@ const AllNewsPage = () => {
       <div className="pagination">
         <button
           disabled={page === 1}
-          onClick={() => setPage((prev) => prev - 1)}
+          onClick={() => {
+            const prev = page - 1;
+            setPage(prev);
+            fetchNews(prev);
+          }}
         >
           ← Previous
         </button>
@@ -99,9 +112,13 @@ const AllNewsPage = () => {
 
         <button
           disabled={page === totalPages}
-          onClick={() => setPage((prev) => prev + 1)}
+          onClick={() => {
+            const next = page + 1;
+            setPage(next);
+            fetchNews(next);
+          }}
         >
-          Next →
+          Next → 
         </button>
       </div>
     </div>
