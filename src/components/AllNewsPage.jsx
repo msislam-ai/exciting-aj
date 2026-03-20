@@ -25,21 +25,12 @@ const AllNewsPage = () => {
 
       const data = await res.json();
 
-      // Sort by updatedAt descending
+      // Sort by updatedAt descending (newest first)
       const sortedNews = (data.data || []).sort(
         (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
       );
 
-      // Merge with existing news and remove duplicates
-      setNews((prevNews) => {
-        const merged = [...sortedNews, ...prevNews];
-        const unique = merged.filter(
-          (item, index, self) =>
-            index === self.findIndex((t) => t._id === item._id)
-        );
-        return unique;
-      });
-
+      setNews(sortedNews);
       setPage(data.page || pageNumber);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -55,11 +46,11 @@ const AllNewsPage = () => {
     fetchNews(1);
   }, []);
 
-  // Auto-refresh latest news every 60 seconds
+  // Auto-refresh every 1 hour (3600000 ms)
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchNews(1); // Always fetch page 1 for newest news
-    }, 60000); // 60 seconds
+      fetchNews(1); // Refresh only the first page
+    }, 3600000); // 1 hour in milliseconds
     return () => clearInterval(interval);
   }, []);
 
