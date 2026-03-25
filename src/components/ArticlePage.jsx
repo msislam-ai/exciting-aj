@@ -2,7 +2,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { fetchAllNews } from "./newsApi";
-import puterAIService from "./aiService.js"; // ✅ Puter.js AI service
 
 // 🎨 Loading Spinner
 const LoadingSpinner = ({ size = "20px", color = "#1d3557" }) => (
@@ -27,11 +26,6 @@ const ArticlePage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // AI-enriched content
-  const [generatedContent, setGeneratedContent] = useState(null);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState(null);
-
   useEffect(() => {
     const loadArticle = async () => {
       try {
@@ -43,27 +37,6 @@ const ArticlePage = () => {
         );
         if (!selected) throw new Error("Article not found");
         setArticle(selected);
-
-        // ✅ Auto-generate content using puter.js
-        if (selected.shortDescription) {
-          setAiLoading(true);
-          try {
-            const result = await puterAIService.generateContent(selected.shortDescription);
-            if (result?.text) {
-              setGeneratedContent(result.text);
-            } else {
-              setGeneratedContent(selected.shortDescription);
-            }
-          } catch (err) {
-            console.error("AI generation error:", err);
-            setAiError("Failed to generate AI content.");
-            setGeneratedContent(selected.shortDescription);
-          } finally {
-            setAiLoading(false);
-          }
-        } else {
-          setGeneratedContent(selected.content || "No content available.");
-        }
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -121,21 +94,10 @@ const ArticlePage = () => {
         />
       )}
 
-      {aiLoading && (
-        <div style={{ margin: "20px 0", display: "flex", alignItems: "center", gap: "10px" }}>
-          <LoadingSpinner size="24px" />
-          <span style={{ color: "#666" }}>Generating content...</span>
-        </div>
-      )}
-
-      {aiError && (
-        <div style={{ padding: "12px 16px", background: "#f8d7da", border: "1px solid #f5c6cb", color: "#721c24", borderRadius: "8px", marginBottom: "20px", fontSize: "14px" }}>
-          ⚠️ {aiError}
-        </div>
-      )}
-
       <article style={{ fontSize: "17px", lineHeight: "1.9", color: "#333", textAlign: "justify" }}>
-        {generatedContent ? generatedContent.split("\n").map((line, idx) => <p key={idx} style={{ marginBottom: "18px" }}>{line}</p>) : <p style={{ color: "#666" }}>No content available.</p>}
+        {(article.content || article.description || "No content available.").split("\n").map((line, idx) => (
+          <p key={idx} style={{ marginBottom: "18px" }}>{line}</p>
+        ))}
       </article>
 
       <footer style={{ marginTop: "40px", paddingTop: "20px", borderTop: "1px solid #e9ecef", color: "#666", fontSize: "14px" }}>
