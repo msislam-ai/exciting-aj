@@ -1,4 +1,4 @@
-const BASE_URL = "https://news-project-06582-2.onrender.com";
+const BASE_URL = "https://banglabartaa.news.girlneed.com";
 
 /* =========================
    Fetch All News (paginated)
