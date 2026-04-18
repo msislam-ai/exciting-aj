@@ -52,7 +52,7 @@ const CategoryPage = () => {
         } else {
           // Fetch only this category
           const res = await axios.get(
-            `https://news-project-06582-2.onrender.com/news/category/${encodeURIComponent(categoryName)}`
+            `https://banglabartaa.news.girlneed.com`
           );
           allNews = Array.isArray(res.data) ? res.data : [];
         }
