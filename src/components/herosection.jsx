@@ -15,7 +15,7 @@ const Herosection = () => {
   const fetchNewsData = async () => {
     try {
       const res = await axios.get(
-        "https://news-project-06582-2.onrender.com/news/all?page=1&limit=5&_=" + Date.now()
+        "https://banglabartaa.news.girlneed.com/news/all" + Date.now()
       );
       const articles = Array.isArray(res.data.data) ? res.data.data : res.data || [];
       setNews(articles);
