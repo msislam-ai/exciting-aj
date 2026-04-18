@@ -23,7 +23,7 @@ const NewsSection = ({ keyword = "" }) => {
     try {
       // Fetch a reasonable number of news for speed
       const res = await axios.get(
-        `https://news-project-06582-2.onrender.com/news/all?limit=50&_=${Date.now()}`
+        `https://banglabartaa.news.girlneed.com/news/all`
       );
 
       let articles = Array.isArray(res.data.data) ? res.data.data : [];
