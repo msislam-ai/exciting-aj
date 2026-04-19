@@ -15,7 +15,7 @@ const Herosection = () => {
     try {
       const [newsRes, weatherRes] = await Promise.all([
         axios.get(
-          "https://banglabartaa.news.girlneed.com/news/all?page=1&limit=10"
+          "https://banglabartaa.news.girlneed.com"
         ),
         fetch(
           `https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45`
