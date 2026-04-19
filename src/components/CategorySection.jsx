@@ -36,7 +36,7 @@ const CategorySection = () => {
       setLoading(true);
       try {
         // Fetch all news locally
-        const res = await axios.get("https://news-project-06582-2.onrender.com/news/all");
+        const res = await axios.get("https://banglabartaa.news.girlneed.com/news/all");
         const data = Array.isArray(res.data) ? res.data : [];
 
         // Group news by category
