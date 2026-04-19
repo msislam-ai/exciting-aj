@@ -1,24 +1,27 @@
+// src/components/CategorySection.jsx
 import { useEffect, useState } from "react";
 import CategoryCard from "./CategoryCard";
 import "./category.css";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-// Bangla categories → backend categories
+// Map backend categories to user-friendly Bangla names
 const CATEGORY_MAP = {
-  "সর্বশেষ": "latest",
-  "জাতীয়": "national",
-  "রাজনীতি": "politics",
-  "খেলা": "sports",
-  "আন্তর্জাতিক": "international",
-  "আরও": "others",
+  general: "জাতীয়",
+  national: "জাতীয়",
+  politics: "রাজনীতি",
+  sports: "খেলা",
+  international: "আন্তর্জাতিক",
+  others: "আরও",
+  latest: "সর্বশেষ",
 };
 
 const CategorySection = () => {
-  const [counts, setCounts] = useState({});
+  const [categoryData, setCategoryData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Fixed categories to display
   const categories = [
     "সর্বশেষ",
     "জাতীয়",
@@ -29,48 +32,51 @@ const CategorySection = () => {
   ];
 
   useEffect(() => {
-    const loadCounts = async () => {
+    const loadNews = async () => {
+      setLoading(true);
       try {
-        const requests = categories.map((cat) => {
-          const backendCat = CATEGORY_MAP[cat];
+        // Fetch all news locally
+        const res = await axios.get("https://banglabartaa.news.girlneed.com/news/all");
+        const data = Array.isArray(res.data) ? res.data : [];
 
-          // latest handled separately
-          if (backendCat === "latest") {
-            return axios.get(
-              `https://banglabartaa.news.girlneed.com/news/latest`
-            );
+        // Group news by category
+        const grouped = {};
+        const today = new Date();
+
+        data.forEach((article) => {
+          // trim category and map to Bangla names
+          const cat = (article.category || "others").trim().toLowerCase();
+          const mappedCat = CATEGORY_MAP[cat] || "আরও";
+
+          if (!grouped[mappedCat]) grouped[mappedCat] = [];
+          grouped[mappedCat].push(article);
+
+          // Also handle "সর্বশেষ" for today
+          const pubDate = new Date(article.pubDate);
+          if (
+            pubDate.getFullYear() === today.getFullYear() &&
+            pubDate.getMonth() === today.getMonth() &&
+            pubDate.getDate() === today.getDate()
+          ) {
+            if (!grouped["সর্বশেষ"]) grouped["সর্বশেষ"] = [];
+            grouped["সর্বশেষ"].push(article);
           }
-
-          return axios.get(
-            `https://banglabartaa.news.girlneed.com/news/category/${backendCat}?page=1&limit=1`
-          );
         });
 
-        const responses = await Promise.all(requests);
-
-        const newCounts = {};
-
-        responses.forEach((res, i) => {
-          const cat = categories[i];
-
-          if (cat === "সর্বশেষ") {
-            newCounts[cat] = res.data?.length || 0;
-          } else {
-            newCounts[cat] = res.data?.total || 0;
-          }
-        });
-
-        setCounts(newCounts);
+        setCategoryData(grouped);
       } catch (err) {
         console.error(err);
-        setError("Failed to load categories");
+        setError(err.message || "Failed to fetch categories");
       } finally {
         setLoading(false);
       }
     };
 
-    loadCounts();
+    loadNews();
   }, []);
+
+  // Count function for each category
+  const getCount = (cat) => categoryData[cat]?.length || 0;
 
   if (loading) return <p className="status-text">Loading categories...</p>;
   if (error) return <p className="status-text error">{error}</p>;
@@ -86,7 +92,7 @@ const CategorySection = () => {
             to={`/category/${encodeURIComponent(cat)}`}
             className="category-card"
           >
-            <CategoryCard title={cat} count={counts[cat] || 0} />
+            <CategoryCard title={cat} count={getCount(cat)} />
           </Link>
         ))}
       </div>
