@@ -18,7 +18,7 @@ const AllNewsPage = () => {
 
     try {
       const res = await fetch(
-        `https://banglabartaa.news.girlneed.com`
+        `https://banglabartaa.news.girlneed.com/news/all`
       );
 
       if (!res.ok) throw new Error("Failed to fetch news");
