@@ -36,7 +36,7 @@ const CategoryPage = () => {
         if (categoryName.toLowerCase() === "সর্বশেষ") {
           // Fetch all news and filter by today's date
           const res = await axios.get(
-            `https://banglabartaa.news.girlneed.com/news/all`
+            `https://banglabartaa.news.girlneed.com`
           );
           const data = Array.isArray(res.data) ? res.data : [];
 
