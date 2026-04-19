@@ -1,4 +1,3 @@
-// src/components/Herosection.jsx
 import { useEffect, useState } from "react";
 import "./hero.css";
 import axios from "axios";
@@ -8,51 +7,50 @@ const Herosection = () => {
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
-  // Refresh interval: 2 hours = 7200000 ms
-  const REFRESH_INTERVAL = 2000;
+  // ✅ 2 hours = 7200000 ms
+  const REFRESH_INTERVAL = 7200000;
 
-  /* ================= NEWS FETCH ================= */
-  const fetchNewsData = async () => {
+  /* ================= FETCH BOTH DATA ================= */
+  const fetchAllData = async () => {
     try {
-      const res = await axios.get(
-        "https://banglabartaa.news.girlneed.com/news/all" + Date.now()
-      );
-      const articles = Array.isArray(res.data.data) ? res.data.data : res.data || [];
+      const [newsRes, weatherRes] = await Promise.all([
+        axios.get(
+          "https://banglabartaa.news.girlneed.com/news/all?page=1&limit=10"
+        ),
+        fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45`
+        )
+      ]);
+
+      // ✅ News
+      const articles = Array.isArray(newsRes.data.data)
+        ? newsRes.data.data
+        : newsRes.data || [];
       setNews(articles);
-    } catch (err) {
-      console.error("Failed to fetch news:", err);
-      setError("Failed to fetch news");
-    }
-  };
 
-  /* ================= WEATHER FETCH ================= */
-  const fetchWeather = async () => {
-    try {
-      const res = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45`
-      );
-      const data = await res.json();
-      if (data.cod === 200) setWeather(data);
-    } catch {
-      console.log("Weather fetch failed");
+      // ✅ Weather
+      const weatherData = await weatherRes.json();
+      if (weatherData.cod === 200) {
+        setWeather(weatherData);
+      }
+
+      setError(null);
+    } catch (err) {
+      console.error("Fetch failed:", err);
+      setError("Failed to load data");
     }
   };
 
   /* ================= USE EFFECT ================= */
   useEffect(() => {
-    fetchNewsData();
-    fetchWeather();
+    fetchAllData();
 
-    // Set interval to refresh news & weather
-    const interval = setInterval(() => {
-      fetchNewsData();
-      fetchWeather();
-    }, REFRESH_INTERVAL);
+    const interval = setInterval(fetchAllData, REFRESH_INTERVAL);
 
     return () => clearInterval(interval);
   }, []);
 
-  /* ================= LOADING & ERROR ================= */
+  /* ================= UI ================= */
   if (error) return <p className="hero-error">{error}</p>;
   if (!news.length) return <p className="hero-loading">Loading news...</p>;
 
@@ -70,17 +68,17 @@ const Herosection = () => {
         </div>
       </div>
 
-      {/* ===== Weather Card ===== */}
+      {/* ===== Weather ===== */}
       <div className="weather-card">
         {weather ? (
           <>
             <h3>{weather.name}</h3>
             <img
-              src={`https://openweathermap.org/img/wn/${weather?.weather?.[0]?.icon}@2x.png`}
+              src={`https://openweathermap.org/img/wn/${weather.weather?.[0]?.icon}@2x.png`}
               alt="weather"
             />
-            <h1>{Math.round(weather?.main?.temp)}°C</h1>
-            <p>{weather?.weather?.[0]?.description}</p>
+            <h1>{Math.round(weather.main?.temp)}°C</h1>
+            <p>{weather.weather?.[0]?.description}</p>
           </>
         ) : (
           <p>Loading weather...</p>
