@@ -7,34 +7,36 @@ const Herosection = () => {
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
-  // ✅ 2 hours = 7200000 ms
-  const REFRESH_INTERVAL = 7200000;
+  const REFRESH_INTERVAL = 7200000; // 2 hours
 
-  /* ================= FETCH BOTH DATA ================= */
+  /* ================= FETCH DATA ================= */
   const fetchAllData = async () => {
     try {
+      setError(null);
+
+      const newsURL =
+        "https://banglabartaa.news.girlneed.com/news/all?page=1&limit=5";
+
+      const weatherURL =
+        "https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45";
+
       const [newsRes, weatherRes] = await Promise.all([
-        axios.get(
-          "https://banglabartaa.news.girlneed.com"
-        ),
-        fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45`
-        )
+        axios.get(newsURL, { timeout: 10000 }),
+        fetch(weatherURL),
       ]);
 
-      // ✅ News
-      const articles = Array.isArray(newsRes.data.data)
-        ? newsRes.data.data
-        : newsRes.data || [];
-      setNews(articles);
+      /* ========= NEWS ========= */
+      const articles = newsRes?.data?.data || [];
+      setNews(Array.isArray(articles) ? articles : []);
 
-      // ✅ Weather
+      /* ========= WEATHER ========= */
       const weatherData = await weatherRes.json();
-      if (weatherData.cod === 200) {
-        setWeather(weatherData);
-      }
 
-      setError(null);
+      if (weatherData?.cod === 200) {
+        setWeather(weatherData);
+      } else {
+        console.warn("Weather API error:", weatherData);
+      }
     } catch (err) {
       console.error("Fetch failed:", err);
       setError("Failed to load data");
@@ -43,11 +45,22 @@ const Herosection = () => {
 
   /* ================= USE EFFECT ================= */
   useEffect(() => {
-    fetchAllData();
+    let isMounted = true;
 
-    const interval = setInterval(fetchAllData, REFRESH_INTERVAL);
+    const loadData = async () => {
+      if (isMounted) {
+        await fetchAllData();
+      }
+    };
 
-    return () => clearInterval(interval);
+    loadData();
+
+    const interval = setInterval(loadData, REFRESH_INTERVAL);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   /* ================= UI ================= */
@@ -61,10 +74,15 @@ const Herosection = () => {
       {/* ===== Feature News ===== */}
       <div className="hero-feature">
         {featureNews?.image && (
-          <img src={featureNews.image} alt={featureNews.title} />
+          <img
+            src={featureNews.image}
+            alt={featureNews?.title || "news"}
+            loading="lazy"
+          />
         )}
+
         <div className="hero-overlay">
-          <h2>{featureNews?.title}</h2>
+          <h2>{featureNews?.title || "No title available"}</h2>
         </div>
       </div>
 
@@ -72,13 +90,17 @@ const Herosection = () => {
       <div className="weather-card">
         {weather ? (
           <>
-            <h3>{weather.name}</h3>
-            <img
-              src={`https://openweathermap.org/img/wn/${weather.weather?.[0]?.icon}@2x.png`}
-              alt="weather"
-            />
-            <h1>{Math.round(weather.main?.temp)}°C</h1>
-            <p>{weather.weather?.[0]?.description}</p>
+            <h3>{weather?.name}</h3>
+
+            {weather?.weather?.[0]?.icon && (
+              <img
+                src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}
+                alt="weather"
+              />
+            )}
+
+            <h1>{Math.round(weather?.main?.temp || 0)}°C</h1>
+            <p>{weather?.weather?.[0]?.description}</p>
           </>
         ) : (
           <p>Loading weather...</p>
