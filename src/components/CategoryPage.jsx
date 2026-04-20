@@ -151,7 +151,7 @@ const CategoryPage = () => {
               </span>
 
               <h4>{item.title}</h4>
-              <p>{item.shortDescription || item.description}</p>
+      
             </div>
           </Link>
         ))}
