@@ -2,7 +2,6 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-// 🎨 Loading Spinner
 const LoadingSpinner = ({ size = "20px", color = "#1d3557" }) => (
   <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
     <div
@@ -15,7 +14,12 @@ const LoadingSpinner = ({ size = "20px", color = "#1d3557" }) => (
         animation: "spin 1s linear infinite",
       }}
     />
-    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+    <style>{`
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    `}</style>
   </div>
 );
 
@@ -34,21 +38,48 @@ const ArticlePage = () => {
         setLoading(true);
         setError(null);
 
-        // ✅ Fetch ONLY one article
-        const res = await axios.get(`${BASE_URL}/news/${id}`, {
-          timeout: 10000,
-        });
+        let foundArticle = null;
 
-        const data = res?.data?.data || res?.data;
+        // ✅ STEP 1: Try direct API (best case)
+        try {
+          const res = await axios.get(`${BASE_URL}/news/${id}`, {
+            timeout: 8000,
+          });
 
-        if (!data) {
+          const data = res?.data?.data || res?.data;
+          if (data) foundArticle = data;
+        } catch (err) {
+          console.warn("Direct API failed, fallback to list API...");
+        }
+
+        // ✅ STEP 2: Fallback (get all news)
+        if (!foundArticle) {
+          const res = await axios.get(
+            `${BASE_URL}/news/all?page=1&limit=500`,
+            { timeout: 10000 }
+          );
+
+          const allNews =
+            res?.data?.data ||
+            res?.data?.articles ||
+            res?.data ||
+            [];
+
+          foundArticle = allNews.find(
+            (item) =>
+              item._id?.toString() === id ||
+              item.id?.toString() === id
+          );
+        }
+
+        if (!foundArticle) {
           throw new Error("Article not found");
         }
 
-        setArticle(data);
+        setArticle(foundArticle);
       } catch (err) {
         console.error(err);
-        setError("Failed to load article");
+        setError("Article not found or failed to load");
       } finally {
         setLoading(false);
       }
@@ -57,8 +88,7 @@ const ArticlePage = () => {
     loadArticle();
   }, [id]);
 
-  /* ================= UI STATES ================= */
-
+  /* ================= LOADING ================= */
   if (loading) {
     return (
       <section style={{ padding: "50px 8%", textAlign: "center" }}>
@@ -70,6 +100,7 @@ const ArticlePage = () => {
     );
   }
 
+  /* ================= ERROR ================= */
   if (error || !article) {
     return (
       <section style={{ padding: "50px 8%" }}>
@@ -84,7 +115,6 @@ const ArticlePage = () => {
   }
 
   /* ================= UI ================= */
-
   return (
     <section
       style={{
@@ -109,35 +139,37 @@ const ArticlePage = () => {
         ← Back to Home
       </Link>
 
-      <header style={{ marginBottom: "24px" }}>
-        <h1
+      {/* TITLE */}
+      <h1
+        style={{
+          fontSize: "28px",
+          lineHeight: "1.4",
+          marginBottom: "12px",
+          color: "#1d3557",
+        }}
+      >
+        {article?.title || "No Title"}
+      </h1>
+
+      {/* CATEGORY */}
+      {article?.category && (
+        <span
           style={{
-            fontSize: "28px",
-            lineHeight: "1.4",
-            marginBottom: "12px",
+            display: "inline-block",
+            padding: "4px 12px",
+            background: "#a8dadc",
             color: "#1d3557",
+            borderRadius: "20px",
+            fontSize: "13px",
+            fontWeight: "600",
+            marginBottom: "15px",
           }}
         >
-          {article?.title}
-        </h1>
+          {article.category}
+        </span>
+      )}
 
-        {article?.category && (
-          <span
-            style={{
-              display: "inline-block",
-              padding: "4px 12px",
-              background: "#a8dadc",
-              color: "#1d3557",
-              borderRadius: "20px",
-              fontSize: "13px",
-              fontWeight: "600",
-            }}
-          >
-            {article.category}
-          </span>
-        )}
-      </header>
-
+      {/* IMAGE */}
       {article?.image && (
         <img
           src={article.image}
@@ -148,13 +180,12 @@ const ArticlePage = () => {
             objectFit: "cover",
             borderRadius: "12px",
             margin: "20px 0",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
           }}
-          loading="lazy"
           onError={(e) => (e.target.style.display = "none")}
         />
       )}
 
+      {/* CONTENT */}
       <article
         style={{
           fontSize: "17px",
@@ -166,31 +197,37 @@ const ArticlePage = () => {
         {(article?.content ||
           article?.description ||
           "No content available.")
+          .toString()
           .split("\n")
-          .map((line, idx) => (
-            <p key={idx} style={{ marginBottom: "18px" }}>
+          .map((line, i) => (
+            <p key={i} style={{ marginBottom: "16px" }}>
               {line}
             </p>
           ))}
       </article>
 
+      {/* DATE */}
       <footer
         style={{
           marginTop: "40px",
           paddingTop: "20px",
-          borderTop: "1px solid #e9ecef",
-          color: "#666",
+          borderTop: "1px solid #eee",
           fontSize: "14px",
+          color: "#666",
         }}
       >
-        <p>
-          Published:{" "}
-          {article?.publishedAt
-            ? new Date(article.publishedAt).toLocaleDateString("bn-BD")
-            : "N/A"}
-        </p>
+        Published:{" "}
+        {article?.publishedAt || article?.pubDate
+          ? new Date(article.publishedAt || article.pubDate).toLocaleDateString(
+              "bn-BD"
+            )
+          : "N/A"}
       </footer>
     </section>
+  );
+};
+
+export default ArticlePage;    </section>
   );
 };
 
