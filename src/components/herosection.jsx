@@ -3,7 +3,7 @@ import "./hero.css";
 import axios from "axios";
 
 const Herosection = () => {
-  const [news, setNews] = useState([]);
+  const [news, setNews] = useState(null); // 👈 start as null
   const [weather, setWeather] = useState(null);
   const [error, setError] = useState(null);
 
@@ -25,9 +25,20 @@ const Herosection = () => {
         fetch(weatherURL),
       ]);
 
-      /* ========= NEWS ========= */
-      const articles = newsRes?.data?.data || [];
-      setNews(Array.isArray(articles) ? articles : []);
+      /* ========= NEWS (SUPER SAFE PARSE) ========= */
+      let articles =
+        newsRes?.data?.data ||
+        newsRes?.data?.articles ||
+        newsRes?.data ||
+        [];
+
+      if (!Array.isArray(articles)) {
+        articles = [];
+      }
+
+      console.log("News:", articles);
+
+      setNews(articles);
 
       /* ========= WEATHER ========= */
       const weatherData = await weatherRes.json();
@@ -35,11 +46,12 @@ const Herosection = () => {
       if (weatherData?.cod === 200) {
         setWeather(weatherData);
       } else {
-        console.warn("Weather API error:", weatherData);
+        console.warn("Weather error:", weatherData);
       }
     } catch (err) {
       console.error("Fetch failed:", err);
       setError("Failed to load data");
+      setNews([]); // 👈 prevent infinite loading
     }
   };
 
@@ -47,15 +59,15 @@ const Herosection = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const loadData = async () => {
+    const load = async () => {
       if (isMounted) {
         await fetchAllData();
       }
     };
 
-    loadData();
+    load();
 
-    const interval = setInterval(loadData, REFRESH_INTERVAL);
+    const interval = setInterval(load, REFRESH_INTERVAL);
 
     return () => {
       isMounted = false;
@@ -63,12 +75,26 @@ const Herosection = () => {
     };
   }, []);
 
-  /* ================= UI ================= */
-  if (error) return <p className="hero-error">{error}</p>;
-  if (!news.length) return <p className="hero-loading">Loading news...</p>;
+  /* ================= UI STATES ================= */
+
+  // ❌ Error
+  if (error) {
+    return <p className="hero-error">{error}</p>;
+  }
+
+  // ⏳ Loading
+  if (news === null) {
+    return <p className="hero-loading">Loading news...</p>;
+  }
+
+  // 📭 Empty
+  if (news.length === 0) {
+    return <p className="hero-empty">No news available</p>;
+  }
 
   const featureNews = news[0];
 
+  /* ================= UI ================= */
   return (
     <section className="hero-container">
       {/* ===== Feature News ===== */}
