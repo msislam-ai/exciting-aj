@@ -24,7 +24,7 @@ const Newsbar = () => {
     try {
       // Fetch a reasonable amount of news (e.g., 50) to sort locally
       const res = await axios.get(
-        "https://banglabartaa.news.girlneed.com" + Date.now()
+        "https://banglabartaa.news.girlneed.com/api/news" + Date.now()
       );
 
       const articles = Array.isArray(res.data.data) ? res.data.data : [];
