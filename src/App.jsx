@@ -14,7 +14,7 @@ import NewsSection from "./components/NewsSection";
 import Footer from "./components/Footer";
 import CategoryPage from "./components/CategoryPage";
 import ArticlePage from "./components/ArticlePage";
-import AllNewsPage from "./components/AllNewsPage";
+
 
 function App() {
   const [count, setCount] = useState(0);
@@ -43,7 +43,7 @@ function App() {
         {/* Dynamic Article Page */}
         <Route path="/article/:id" element={<ArticlePage />} />
 
-        <Route path="/AllNewsPage" element={<AllNewsPage />} />
+        
       </Routes>
       <Footer />
     </Router>
