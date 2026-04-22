@@ -29,46 +29,43 @@ const CategorySection = () => {
   ];
 
   useEffect(() => {
-    const loadCategories = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
         setError(null);
 
+        const counts = {};
+
+        /* ===== FETCH LATEST ===== */
+        const latestRes = await axios.get(
+          "https://banglabartaa.news.girlneed.com/api/news/latest?limit=20"
+        );
+        counts["সর্বশেষ"] = latestRes.data?.length || 0;
+
         /* ===== FETCH CATEGORY LIST ===== */
-        const res = await axios.get(
+        const catRes = await axios.get(
           "https://banglabartaa.news.girlneed.com/api/news/categories"
         );
 
-        const backendCategories = res.data || [];
+        const backendCats = catRes.data || [];
 
-        const counts = {};
-
-        /* ===== FETCH COUNT PER CATEGORY ===== */
+        /* ===== FETCH EACH CATEGORY COUNT ===== */
         await Promise.all(
-          backendCategories.map(async (cat) => {
+          backendCats.map(async (cat) => {
             try {
-              const response = await axios.get(
+              const res = await axios.get(
                 `https://banglabartaa.news.girlneed.com/api/news/category/${cat}`
               );
 
               const mapped = CATEGORY_MAP[cat] || "আরও";
-
-              counts[mapped] = response.data?.length || 0;
+              counts[mapped] = res.data?.length || 0;
             } catch {
-              // skip error silently
+              // ignore error
             }
           })
         );
 
-        /* ===== LATEST COUNT ===== */
-        const latestRes = await axios.get(
-          "https://banglabartaa.news.girlneed.com/api/news/latest?limit=20"
-        );
-
-        counts["সর্বশেষ"] = latestRes.data?.length || 0;
-
         setCategoryData(counts);
-
       } catch (err) {
         console.error(err);
         setError("Failed to load categories");
@@ -77,7 +74,7 @@ const CategorySection = () => {
       }
     };
 
-    loadCategories();
+    loadData();
   }, []);
 
   const getCount = (cat) => categoryData[cat] || 0;
