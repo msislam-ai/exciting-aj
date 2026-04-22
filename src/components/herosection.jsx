@@ -21,7 +21,7 @@ const Herosection = () => {
         "https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45";
 
       const [newsRes, weatherRes] = await Promise.all([
-        axios.get(newsURL, { timeout: 10000 }),
+        axios.get(newsURL, { timeout: 100000 }),
         fetch(weatherURL),
       ]);
 
