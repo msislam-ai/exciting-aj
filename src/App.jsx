@@ -31,7 +31,6 @@ function App() {
             <FullPageLoader>
               <Herosection />
               <Newsbar />
-              <CategorySection />
               <NewsSection />
               </FullPageLoader>
             </>
