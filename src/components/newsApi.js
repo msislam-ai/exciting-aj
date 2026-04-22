@@ -1,102 +1,79 @@
-const BASE_URL = "https://banglabartaa.news.girlneed.com";
+const BASE_URL = "https://banglabartaa.news.girlneed.com/api/news";
 
 /* =========================
-   Fetch All News (paginated)
+   Fetch Latest News
 ========================= */
-export const fetchAllNews = async (page = 1, limit = 50) => {
+export const fetchLatestNews = async (limit = 10) => {
   try {
-    const res = await fetch(`${BASE_URL}/news/all?page=${page}&limit=${limit}`);
-
-    if (!res.ok) throw new Error("Failed to fetch news");
-
-    const json = await res.json();
-
-    // Ensure consistent structure
-    return {
-      page: json.page || page,
-      limit: json.limit || limit,
-      total: json.total || 0,
-      totalPages: json.totalPages || 0,
-      data: Array.isArray(json.data) ? json.data : [],
-    };
-  } catch (error) {
-    console.error("❌ fetchAllNews:", error.message);
-    return { page, limit, total: 0, totalPages: 0, data: [] };
-  }
-};
-
-/* =========================
-   Fetch News By Category (paginated)
-========================= */
-export const fetchNewsByCategory = async (category, page = 1, limit = 50) => {
-  try {
-    const res = await fetch(
-      `${BASE_URL}/news/category/${encodeURIComponent(category)}?page=${page}&limit=${limit}`
-    );
-
-    if (!res.ok) throw new Error("Failed to fetch category news");
-
-    const json = await res.json();
-
-    return {
-      page: json.page || page,
-      limit: json.limit || limit,
-      total: json.total || 0,
-      totalPages: json.totalPages || 0,
-      data: Array.isArray(json.data) ? json.data : [],
-    };
-  } catch (error) {
-    console.error("❌ fetchNewsByCategory:", error.message);
-    return { page, limit, total: 0, totalPages: 0, data: [] };
-  }
-};
-
-/* =========================
-   Fetch Latest News (latest 10 news)
-========================= */
-export const fetchLatestNews = async () => {
-  try {
-    const res = await fetch(`${BASE_URL}/news/latest`);
+    const res = await fetch(`${BASE_URL}/latest?limit=${limit}`);
 
     if (!res.ok) throw new Error("Failed to fetch latest news");
 
     const data = await res.json();
 
     return {
-      page: 1,
-      limit: data.length || 0,
-      total: data.length || 0,
-      totalPages: 1,
       data: Array.isArray(data) ? data : [],
     };
   } catch (error) {
     console.error("❌ fetchLatestNews:", error.message);
-    return { page: 1, limit: 0, total: 0, totalPages: 0, data: [] };
+    return { data: [] };
   }
 };
 
 /* =========================
-   Search News
+   Fetch News By Category
 ========================= */
-export const searchNews = async (query, page = 1, limit = 50) => {
+export const fetchNewsByCategory = async (category, limit = 50) => {
   try {
     const res = await fetch(
-      `${BASE_URL}/news/search?q=${encodeURIComponent(query)}&page=${page}&limit=${limit}`
+      `${BASE_URL}/category/${encodeURIComponent(category)}?limit=${limit}`
     );
 
-    if (!res.ok) throw new Error("Search failed");
+    if (!res.ok) throw new Error("Failed to fetch category news");
 
-    const json = await res.json();
+    const data = await res.json();
 
     return {
-      page: json.page || page,
-      limit: json.limit || limit,
-      total: json.total || 0,
-      totalPages: json.totalPages || 0,
-      data: Array.isArray(json.data) ? json.data : [],
+      data: Array.isArray(data) ? data : [],
     };
   } catch (error) {
-    console.error("❌ searchNews:", error.message);
-    return { page, limit, total: 0, totalPages: 0, data: [] };
+    console.error("❌ fetchNewsByCategory:", error.message);
+    return { data: [] };
+  }
+};
+
+/* =========================
+   Fetch Single Article
+========================= */
+export const fetchSingleArticle = async (id) => {
+  try {
+    const res = await fetch(`${BASE_URL}/article/${id}`);
+
+    if (!res.ok) throw new Error("Failed to fetch article");
+
+    const data = await res.json();
+
+    return data;
+  } catch (error) {
+    console.error("❌ fetchSingleArticle:", error.message);
+    return null;
+  }
+};
+
+/* =========================
+   Fetch Categories
+========================= */
+export const fetchCategories = async () => {
+  try {
+    const res = await fetch(`${BASE_URL}/categories`);
+
+    if (!res.ok) throw new Error("Failed to fetch categories");
+
+    const data = await res.json();
+
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("❌ fetchCategories:", error.message);
+    return [];
   }
 };
