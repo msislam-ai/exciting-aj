@@ -113,6 +113,7 @@ const Herosection = () => {
       </div>
 
       {/* ===== Weather ===== */}
+      {/*
       <div className="weather-card">
         {weather ? (
           <>
@@ -132,6 +133,7 @@ const Herosection = () => {
           <p>Loading weather...</p>
         )}
       </div>
+      */}
     </section>
   );
 };
