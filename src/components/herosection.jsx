@@ -15,7 +15,7 @@ const Herosection = () => {
       setError(null);
 
       const newsURL =
-        "https://banglabartaa.news.girlneed.com/news/all?page=1&limit=5";
+        "https://banglabartaa.news.girlneed.com/api/news/latest?limit=5";
 
       const weatherURL =
         "https://api.openweathermap.org/data/2.5/weather?q=Dhaka&units=metric&appid=0b45a135f1a07d1ecb9216e44edc2e45";
