@@ -2,6 +2,8 @@ import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+const BASE_URL = "https://banglabartaa.news.girlneed.com/api/news";
+
 const LoadingSpinner = ({ size = "20px", color = "#1d3557" }) => (
   <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
     <div
@@ -23,8 +25,6 @@ const LoadingSpinner = ({ size = "20px", color = "#1d3557" }) => (
   </div>
 );
 
-const BASE_URL = "https://banglabartaa.news.girlneed.com";
-
 const ArticlePage = () => {
   const { id } = useParams();
 
@@ -38,63 +38,22 @@ const ArticlePage = () => {
         setLoading(true);
         setError(null);
 
-        let foundArticle = null;
+        // ✅ Correct API
+        const res = await axios.get(`${BASE_URL}/article/${id}`, {
+          timeout: 8000,
+        });
 
-        // ===============================
-        // STEP 1: Try single article API
-        // ===============================
-        try {
-          const res = await axios.get(`${BASE_URL}/news/${id}`, {
-            timeout: 8000,
-          });
+        const data = res?.data;
 
-          const data = res?.data?.data || res?.data;
-
-          if (data) {
-            foundArticle = data;
-          }
-        } catch (err) {
-          console.warn("Single API failed, using fallback...");
-        }
-
-        // ===============================
-        // STEP 2: Fallback (load all news)
-        // ===============================
-        if (!foundArticle) {
-          const res = await axios.get(
-            `${BASE_URL}/news/all?page=1&limit=500`,
-            { timeout: 20000 }
-          );
-
-          const allNews =
-            res?.data?.data ||
-            res?.data?.news ||
-            res?.data ||
-            [];
-
-          if (!Array.isArray(allNews)) {
-            throw new Error("Invalid API format");
-          }
-
-          foundArticle = allNews.find((item) => {
-            return (
-              item?._id?.toString() === id ||
-              item?.id?.toString() === id
-            );
-          });
-        }
-
-        // ===============================
-        // STEP 3: Final check
-        // ===============================
-        if (!foundArticle) {
+        if (!data) {
           throw new Error("Article not found");
         }
 
-        setArticle(foundArticle);
+        setArticle(data);
+
       } catch (err) {
-        console.error("Article load error:", err);
-        setError(err.message || "Failed to load article");
+        console.error("Article load error:", err.message);
+        setError("Failed to load article");
       } finally {
         setLoading(false);
       }
@@ -119,10 +78,7 @@ const ArticlePage = () => {
   if (error || !article) {
     return (
       <section style={{ padding: "50px 8%" }}>
-        <Link
-          to="/"
-          style={{ marginBottom: "20px", display: "inline-block" }}
-        >
+        <Link to="/" style={{ marginBottom: "20px", display: "inline-block" }}>
           ← Back to Home
         </Link>
 
@@ -225,10 +181,8 @@ const ArticlePage = () => {
         }}
       >
         Published:{" "}
-        {article?.publishedAt || article?.pubDate
-          ? new Date(
-              article.publishedAt || article.pubDate
-            ).toLocaleDateString("bn-BD")
+        {article?.pubDate
+          ? new Date(article.pubDate).toLocaleDateString("bn-BD")
           : "N/A"}
       </footer>
     </section>
