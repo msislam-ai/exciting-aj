@@ -63,7 +63,7 @@ const ArticlePage = () => {
         if (!foundArticle) {
           const res = await axios.get(
             `${BASE_URL}/news/all?page=1&limit=500`,
-            { timeout: 10000 }
+            { timeout: 20000 }
           );
 
           const allNews =
