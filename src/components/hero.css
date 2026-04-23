@@ -97,7 +97,9 @@
   .hero-container {
     grid-template-columns: 1fr;
   }
-
+  .weather-card {
+    display: none;
+  }
   .hero-feature {
     height: 300px;
   }
