@@ -8,7 +8,6 @@ import "./App.css";
 import "./components/Navbar";
 import Navbar from "./components/Navbar";
 import Herosection from "./components/herosection";
-import Newsbar from "./components/Newsbar";
 import CategorySection from "./components/CategorySection";
 import NewsSection from "./components/NewsSection";
 import Footer from "./components/Footer";
@@ -30,7 +29,6 @@ function App() {
             <>
             <FullPageLoader>
               <Herosection />
-              {/*<Newsbar /> */}
               <NewsSection />
               </FullPageLoader>
             </>
