@@ -30,7 +30,7 @@ function App() {
             <>
             <FullPageLoader>
               <Herosection />
-              <Newsbar />
+              {/*<Newsbar /> */}
               <NewsSection />
               </FullPageLoader>
             </>
