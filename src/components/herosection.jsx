@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import "./hero.css";
 import axios from "axios";
+import AdBanner from "./AdBanner";
 
 const Herosection = () => {
   const [news, setNews] = useState(null); // 👈 start as null
@@ -133,6 +134,7 @@ const Herosection = () => {
         )}
       </div>
     </section>
+    <AdBanner />
   );
 };
 
