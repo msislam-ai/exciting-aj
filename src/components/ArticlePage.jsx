@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import AdBanner from "./AdBanner";
 
 const BASE_URL = "https://banglabartaa.news.girlneed.com/api/news";
 
@@ -170,8 +171,7 @@ const ArticlePage = () => {
             </p>
           ))}
       </article>
-    
-
+    <AdBanner />
       {/* Date */}
       <footer
         style={{
