@@ -97,6 +97,7 @@ const Herosection = () => {
 
   /* ================= UI ================= */
   return (
+    <>
     <section className="hero-container">
       {/* ===== Feature News ===== */}
       <div className="hero-feature">
@@ -135,6 +136,7 @@ const Herosection = () => {
       </div>
     </section>
     <AdBanner />
+      </>
   );
 };
 
