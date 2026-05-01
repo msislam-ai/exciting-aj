@@ -170,17 +170,7 @@ const ArticlePage = () => {
             </p>
           ))}
       </article>
-      <script>
-  atOptions = {
-    'key' : 'd3f804d22fb21269a5bd158109be0082',
-    'format' : 'iframe',
-    'height' : 50,
-    'width' : 320,
-    'params' : {}
-  };
-</script>
-<script src="https://insensitiveshoweraudible.com/d3f804d22fb21269a5bd158109be0082/invoke.js"></script>
-      <script src="https://insensitiveshoweraudible.com/93/14/09/931409bb4b8475d5360299c9ec5cbc37.js"></script>
+    
 
       {/* Date */}
       <footer
